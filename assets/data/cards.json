@@ -1,0 +1,17 @@
+{
+ "cards": [
+    {
+        "id": 1,
+        "name": "Tatu-Canastra",
+        "image": "assets/images/cards/tatu-canastra.png",
+        "attributes": {
+            "instintoAssassino": 25,  
+            "forca": 92,  
+            "peso": 70,  
+            "inteligencia": 55,  
+            "agilidade": 35,  
+            "media": 55
+        }
+    }
+ ]   
+}
