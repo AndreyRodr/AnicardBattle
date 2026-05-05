@@ -118,7 +118,10 @@ class _DeckViewState extends State<DeckView> {
                   ),
                 ),
               ),
-              CardGridWidget(cards: controller.equippedCards),
+              CardGridWidget(
+                cards: controller.equippedCards,
+                fixedSlots: 9, 
+                ),
               const Divider(color: Colors.brown, thickness: 2, height: 1),
             ],
           ),

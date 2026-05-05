@@ -9,7 +9,6 @@ import '../widgets/custom_bottom_nav_bar.dart';
 import '../widgets/settings_dialog.dart';
 import '../views/open_pack_view.dart';
 
-
 class AniCardScreen extends StatefulWidget {
   const AniCardScreen({super.key});
 
@@ -22,14 +21,13 @@ class _AniCardScreenState extends State<AniCardScreen> {
   bool _soundEffectsOn = true;
   bool _musicOn = false;
 
-
   final List<Widget> _telas = [
     const ProfileView(), 
     const DeckView(),
     const BattleView(), 
     const OpenPackView(),
     const StoreView(),
-];
+  ];
 
   void _showSettingsDialog(BuildContext context) {
     showDialog(
@@ -56,6 +54,19 @@ class _AniCardScreenState extends State<AniCardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // 👇 1. MÁGICA: Faz a sua imagem de fundo e o Blur passarem por baixo da barra!
+      extendBody: true, 
+
+      // 👇 2. O LUGAR CORRETO DA BARRA: Fora do body, pregada no rodapé!
+      bottomNavigationBar: CustomBottomNavBar(
+        selectedIndex: _selectedIndex,
+        onItemSelected: (index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+      ),
+
       body: Stack(
         children: [
           // Fundo
@@ -75,6 +86,8 @@ class _AniCardScreenState extends State<AniCardScreen> {
             ),
           ),
           SafeArea(
+            // 👇 3. Avisa a SafeArea para não se preocupar com a barra de baixo
+            bottom: false, 
             child: Column(
               children: [
                 // --- Top Bar ---
@@ -123,16 +136,8 @@ class _AniCardScreenState extends State<AniCardScreen> {
                 Expanded(
                   child: _telas[_selectedIndex], 
                 ),
-
-                // --- Bottom Navigation Bar ---
-                CustomBottomNavBar(
-                  selectedIndex: _selectedIndex,
-                  onItemSelected: (index) {
-                    setState(() {
-                      _selectedIndex = index;
-                    });
-                  },
-                ),
+                
+                // NOTA: A CustomBottomNavBar foi removida daqui!
               ],
             ),
           ),
