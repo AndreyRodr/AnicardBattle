@@ -15,7 +15,7 @@ class CardModel {
     return CardModel(
       id: json['id'], 
       name: json['name'], 
-      image: json['image'], 
+      image: json['image'] ?? 'assets/images/cards/default.png',
       attributes: Map<String, int>.from(json['attributes']),
       );
   }

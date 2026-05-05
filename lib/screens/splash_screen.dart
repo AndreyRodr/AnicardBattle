@@ -15,7 +15,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     
     // Configura um timer de 3 segundos
-    Timer(const Duration(seconds: 1), () {
+    Timer(const Duration(seconds: 3), () {
       // pushReplacement destrói a splash screen e abre o Login.
       // Isso impede que o usuário volte para a splash screen se apertar o botão de "voltar" do celular.
       Navigator.pushReplacement(

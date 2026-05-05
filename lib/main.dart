@@ -1,23 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart'; // 1. Importa o núcleo do Firebase
-import 'firebase_options.dart'; // 2. Importa o arquivo que o CLI gerou
-import 'screens/splash_screen.dart'; 
-import 'package:flutter_dotenv/flutter_dotenv.dart'; // Importe no topo
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:device_preview/device_preview.dart'; // 1. O Device Preview voltou!
+import 'firebase_options.dart';
+import 'screens/splash_screen.dart';
+import 'simulator/card_catalog.dart'; // 2. Seu simulador de dados
 
-// 3. O "main" agora é um Future assíncrono
 Future<void> main() async {
-  // 4. Garante que os blocos internos do Flutter estejam prontos
   WidgetsFlutterBinding.ensureInitialized();
-
-  await dotenv.load(fileName: ".env"); // Carrega as variáveis do .env
   
-  // 5. Conecta o seu app ao Firebase usando as chaves geradas
+  await dotenv.load(fileName: ".env");
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Inicia o app normalmente
-  runApp(const MyApp());
+  // Carrega o banco de dados simulado ANTES de desenhar a tela
+  try {
+    await CardCatalog.load();
+    print("Catálogo de cartas carregado com sucesso!");
+  } catch (e) {
+    print("Erro ao carregar o catálogo de cartas: $e");
+  }
+
+  // 3. Roda o app embrulhado no DevicePreview novamente
+  runApp(
+    DevicePreview(
+      enabled: true, // Mantenha true para ver o celular na tela
+      builder: (context) => const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -26,12 +38,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // 4. Conecta o DevicePreview ao app (sem aquela linha depreciada)
+      builder: DevicePreview.appBuilder, 
+      
       title: 'AniCard Battle',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF183B1E)),
       ),
-      home: const SplashScreen(), // O app começa pela sua tela de carregamento
+      home: const SplashScreen(),
     );
   }
 }

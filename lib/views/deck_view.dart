@@ -30,6 +30,7 @@ class _DeckViewState extends State<DeckView> {
   @override
   void initState() {
     super.initState();
+    // Simulando o carregamento do banco de dados/Firebase
     controller.load().then((_) {
       setState(() {
         isLoading = false;
@@ -40,13 +41,18 @@ class _DeckViewState extends State<DeckView> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.greenAccent),
+        ),
+      );
     }
 
     return SingleChildScrollView(
+      // physics: const BouncingScrollPhysics(), // Opcional: efeito de elástico ao rolar (estilo iOS)
       child: Column(
         children: [
-          // Seção de Abas
+          // --- Seção de Abas (Decks / Coleção) ---
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12.0),
             child: Row(
@@ -67,19 +73,28 @@ class _DeckViewState extends State<DeckView> {
             ),
           ),
 
-          // Área de visualização (Decks ou Coleção)
+          // --- Área de visualização principal ---
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: IndexedStack(
               index: _currentIndex,
-              children: [_buildDecksView(), _buildColecaoView()],
+              children: [
+                _buildDecksView(),   // Índice 0
+                _buildColecaoView(), // Índice 1
+              ],
             ),
           ),
+          
+          // 👇 Espaço extra no final para a barra de baixo (Bottom Nav Bar) não cobrir a última carta!
+          const SizedBox(height: 100), 
         ],
       ),
     );
   }
 
+  // ==========================================
+  // VIEW 1: DECKS
+  // ==========================================
   Widget _buildDecksView() {
     return Column(
       children: [
@@ -92,13 +107,24 @@ class _DeckViewState extends State<DeckView> {
           ),
           child: Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Cartas no Deck',
+                  style: TextStyle(
+                    color: Colors.amber[200],
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               CardGridWidget(cards: controller.equippedCards),
               const Divider(color: Colors.brown, thickness: 2, height: 1),
             ],
           ),
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
 
         // Barra de Filtros
         FilterBarWidget(
@@ -121,7 +147,7 @@ class _DeckViewState extends State<DeckView> {
           },
         ),
 
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
 
         // Cartas do Jogador (Inventário)
         CardGridWidget(cards: controller.playerCards),
@@ -129,27 +155,26 @@ class _DeckViewState extends State<DeckView> {
     );
   }
 
+  // ==========================================
+  // VIEW 2: COLEÇÃO
+  // ==========================================
   Widget _buildColecaoView() {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.all(16.0),
-        decoration: BoxDecoration(
-          color: Colors.brown[800],
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.brown[900]!, width: 4),
-        ),
-        child: switch (_colecaoState) {
-          ColecaoState.home => _buildColecaoHome(),
-          ColecaoState.detalhePersonalizavel => _buildColecaoDetalhe(
-            isCartas: false,
-          ),
-          ColecaoState.detalhePacote => _buildColecaoDetalhe(isCartas: true),
-        },
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.brown[800],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.brown[900]!, width: 4),
       ),
+      child: switch (_colecaoState) {
+        ColecaoState.home => _buildColecaoHome(),
+        ColecaoState.detalhePersonalizavel => _buildColecaoDetalhe(isCartas: false),
+        ColecaoState.detalhePacote => _buildColecaoDetalhe(isCartas: true),
+      },
     );
   }
 
-  // Home das Coleções
+  // --- Home das Coleções ---
   Widget _buildColecaoHome() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,20 +195,17 @@ class _DeckViewState extends State<DeckView> {
             ColectionItemWidget(
               titulo: 'Arena',
               icon: Icons.grid_on,
-              onTap: () =>
-                  _abrirDetalhe(ColecaoState.detalhePersonalizavel, 'Arenas:'),
+              onTap: () => _abrirDetalhe(ColecaoState.detalhePersonalizavel, 'Arenas:'),
             ),
             ColectionItemWidget(
               titulo: 'Borda',
               icon: Icons.crop_square,
-              onTap: () =>
-                  _abrirDetalhe(ColecaoState.detalhePersonalizavel, 'Bordas:'),
+              onTap: () => _abrirDetalhe(ColecaoState.detalhePersonalizavel, 'Bordas:'),
             ),
             ColectionItemWidget(
               titulo: 'Vida',
               icon: Icons.favorite,
-              onTap: () =>
-                  _abrirDetalhe(ColecaoState.detalhePersonalizavel, 'Vida:'),
+              onTap: () => _abrirDetalhe(ColecaoState.detalhePersonalizavel, 'Vida:'),
             ),
           ],
         ),
@@ -206,16 +228,12 @@ class _DeckViewState extends State<DeckView> {
             ColectionItemWidget(
               titulo: 'Tanzânia',
               isPacote: true,
-              onTap: () => _abrirDetalhe(
-                ColecaoState.detalhePacote,
-                'Coleção Tanzânia:',
-              ),
+              onTap: () => _abrirDetalhe(ColecaoState.detalhePacote, 'Coleção Tanzânia:'),
             ),
             ColectionItemWidget(
               titulo: 'EUROPA',
               isPacote: true,
-              onTap: () =>
-                  _abrirDetalhe(ColecaoState.detalhePacote, 'Coleção EUROPA:'),
+              onTap: () => _abrirDetalhe(ColecaoState.detalhePacote, 'Coleção EUROPA:'),
             ),
           ],
         ),
@@ -223,17 +241,18 @@ class _DeckViewState extends State<DeckView> {
     );
   }
 
-  // Detalhes
+  // --- Tela de Detalhes da Coleção ---
   Widget _buildColecaoDetalhe({required bool isCartas}) {
     return Column(
       children: [
+        // Cabeçalho com botão de Voltar
         Row(
           children: [
             IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.orangeAccent),
+              icon: const Icon(Icons.arrow_back, color: Colors.orangeAccent, size: 28),
               onPressed: () {
                 setState(() {
-                  _colecaoState = ColecaoState.home; // Volta pra home
+                  _colecaoState = ColecaoState.home; // Volta pra home da coleção
                 });
               },
             ),
@@ -248,26 +267,27 @@ class _DeckViewState extends State<DeckView> {
                 ),
               ),
             ),
-            const SizedBox(width: 48),
+            const SizedBox(width: 48), // Espaço vazio para manter o texto perfeitamente centralizado
           ],
         ),
         const SizedBox(height: 16),
 
-        // TODO: Aqui você chamará o CardGridWidget para cartas, ou um novo Grid genérico para arenas
+        // Mostra o Grid de Cartas ou o Grid de Itens Personalizáveis
         isCartas
-            ? CardGridWidget(
-                cards: controller.playerCards,
-              ) // Passe a lista filtrada do pacote aqui
+            ? CardGridWidget(cards: controller.playerCards) 
             : _buildGridPersonalizaveis(),
       ],
     );
   }
 
+  // --- Grid específico para bordas, arenas, etc ---
   Widget _buildGridPersonalizaveis() {
     return GridView.builder(
+      // 👇 Aqui a mesma regra de ouro!
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: 9, // Mock
+      
+      itemCount: 9, // Quantidade mockada para teste
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         childAspectRatio: 0.8,
@@ -276,15 +296,17 @@ class _DeckViewState extends State<DeckView> {
       ),
       itemBuilder: (_, index) {
         return ColectionItemWidget(
-          titulo: 'Arena ${index + 1}',
-          icon: Icons.grid_on,
-          onTap: () {},
+          titulo: 'Item ${index + 1}',
+          icon: Icons.star,
+          onTap: () {
+            // Ação ao equipar/visualizar uma arena ou borda
+          },
         );
       },
     );
   }
 
-  // Função auxiliar para trocar de tela e definir o título
+  // Função auxiliar para navegar internamente na aba de coleções
   void _abrirDetalhe(ColecaoState novoEstado, String titulo) {
     setState(() {
       _colecaoState = novoEstado;
