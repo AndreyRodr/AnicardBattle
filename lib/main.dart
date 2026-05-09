@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // <-- Adicionado para o User e FirebaseAuth
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:device_preview/device_preview.dart'; // 1. O Device Preview voltou!
+import 'package:device_preview/device_preview.dart';
+
 import 'firebase_options.dart';
-import 'screens/splash_screen.dart';
-import 'simulator/card_catalog.dart'; // 2. Seu simulador de dados
+import 'simulator/card_catalog.dart';
+import 'screens/home_screen.dart';  // <-- Adicionado para a AniCardScreen
+import 'screens/login_screen.dart'; // <-- Adicionado para a LoginScreen
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,12 +21,12 @@ Future<void> main() async {
   // Carrega o banco de dados simulado ANTES de desenhar a tela
   try {
     await CardCatalog.load();
-      print("Catálogo de cartas carregado com sucesso!");
+    print("Catálogo de cartas carregado com sucesso!");
   } catch (e) {
     print("Erro ao carregar o catálogo de cartas: $e");
   }
 
-  // 3. Roda o app embrulhado no DevicePreview novamente
+  // Roda o app embrulhado no DevicePreview novamente
   runApp(
     DevicePreview(
       enabled: true, // Mantenha true para ver o celular na tela
@@ -38,15 +41,31 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // 4. Conecta o DevicePreview ao app (sem aquela linha depreciada)
-      builder: DevicePreview.appBuilder, 
-      
+      builder: DevicePreview.appBuilder,
       title: 'AniCard Battle',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF183B1E)),
+        useMaterial3: true,
       ),
-      home: const SplashScreen(),
+      // O segredo está aqui:
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          // Se o Firebase ainda estiver a verificar a sessão...
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          // Se existir um utilizador logado, vai direto para o jogo
+          if (snapshot.hasData) {
+            return const AniCardScreen();
+          }
+          // Se não estiver logado, vai para a tela de Login
+          return const LoginScreen();
+        },
+      ),
     );
   }
 }
