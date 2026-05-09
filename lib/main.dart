@@ -18,7 +18,7 @@ Future<void> main() async {
   // Carrega o banco de dados simulado ANTES de desenhar a tela
   try {
     await CardCatalog.load();
-    print("Catálogo de cartas carregado com sucesso!");
+      print("Catálogo de cartas carregado com sucesso!");
   } catch (e) {
     print("Erro ao carregar o catálogo de cartas: $e");
   }

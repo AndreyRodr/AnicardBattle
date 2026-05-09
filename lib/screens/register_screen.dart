@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../widgets/custom_input_field.dart'; // Importando o nosso novo widget
+import '../widgets/custom_input_field.dart';
+import '../services/auth_service.dart'; // Importando o serviço que criamos
+import 'home_screen.dart'; // Importando a tela principal para redirecionar
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -9,6 +11,70 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  // Controladores para pegar os textos digitados
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
+  
+  final AuthService _authService = AuthService();
+  bool _isLoading = false; // Controle da bolinha de carregamento
+
+  // Função disparada ao clicar no botão
+  void _fazerRegistro() async {
+    // 1. Validação básica de senhas
+    if (_passwordController.text != _confirmPasswordController.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('As senhas não coincidem!'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    // 2. Inicia o carregamento
+    setState(() {
+      _isLoading = true;
+    });
+
+    // 3. Chama o Firebase
+    String? erro = await _authService.registrarUsuario(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    // 4. Termina o carregamento e verifica o resultado
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (erro == null) {
+      // Sucesso! Vai para a tela do jogo e impede de voltar para o registro
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => const AniCardScreen()),
+          (route) => false,
+        );
+      }
+    } else {
+      // Erro! Mostra mensagem para o usuário
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(erro), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    // Limpa os controladores da memória ao fechar a tela
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -27,7 +93,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        
                         // Logo do App
                         Image.asset(
                           'assets/images/AniCard Icon.png', 
@@ -37,7 +102,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Card de Registro responsivo
+                        // Card de Registro
                         Expanded(
                           child: Container(
                             width: double.infinity,
@@ -55,7 +120,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             ),
                             child: Column(
                               children: [
-                                // Título
                                 const Text(
                                   'REGISTRO',
                                   style: TextStyle(
@@ -67,62 +131,69 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 ),
                                 const SizedBox(height: 32),
 
-                                // Inputs usando o CustomInputField
-                                const CustomInputField(
+                                // Passando os controladores para o CustomInputField
+                                CustomInputField(
                                   label: 'Nome de usuário:',
+                                  controller: _usernameController,
                                 ),
                                 const SizedBox(height: 20),
 
-                                const CustomInputField(
+                                CustomInputField(
                                   label: 'Email:',
+                                  controller: _emailController,
                                 ),
                                 const SizedBox(height: 20),
 
-                                const CustomInputField(
+                                CustomInputField(
                                   label: 'Senha:',
                                   obscureText: true,
+                                  controller: _passwordController,
                                 ),
                                 const SizedBox(height: 20),
 
-                                const CustomInputField(
+                                CustomInputField(
                                   label: 'Confirmar Senha:',
                                   obscureText: true,
+                                  controller: _confirmPasswordController,
                                 ),
                                 const SizedBox(height: 32),
 
                                 // Botão Registrar
-                                ElevatedButton(
-                                  onPressed: () {
-                                    // Lógica de registro
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF1B3D21),
-                                    foregroundColor: const Color(0xFFC0C0C0),
-                                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                SizedBox(
+                                  width: double.infinity, // Faz o botão ocupar toda a largura
+                                  child: ElevatedButton(
+                                    onPressed: _isLoading ? null : _fazerRegistro, // Desativa se estiver carregando
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF1B3D21),
+                                      foregroundColor: const Color(0xFFC0C0C0),
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      elevation: 8,
                                     ),
-                                    elevation: 8,
-                                    shadowColor: Colors.black.withValues(alpha: 0.5),
-                                  ),
-                                  child: const Text(
-                                    'Registrar',
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 1.2,
-                                    ),
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            height: 24,
+                                            width: 24,
+                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                                          )
+                                        : const Text(
+                                            'Registrar',
+                                            style: TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 1.2,
+                                            ),
+                                          ),
                                   ),
                                 ),
                                 
                                 const Spacer(),
                                 const SizedBox(height: 24),
 
-                                // NAVEGAÇÃO PARA VOLTAR AO LOGIN
                                 GestureDetector(
-                                  onTap: () {
-                                    Navigator.pop(context); // Volta para a tela anterior
-                                  },
+                                  onTap: () => Navigator.pop(context),
                                   child: const Text(
                                     'Voltar ao login',
                                     style: TextStyle(

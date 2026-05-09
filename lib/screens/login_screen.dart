@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'register_screen.dart';
-import '../widgets/custom_input_field.dart'; // Importando o nosso novo widget
+import '../widgets/custom_input_field.dart';
+import '../services/auth_service.dart'; // Importando o serviço
 import 'home_screen.dart';
+
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -10,7 +12,49 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final AuthService _authService = AuthService();
+  
   bool _lembrarUsuario = false;
+  bool _isLoading = false;
+
+  void _fazerLogin() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    String? erro = await _authService.loginUsuario(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (erro == null) {
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const AniCardScreen()),
+        );
+      }
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(erro), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +75,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         
-                        // Logo do App
                         Image.asset(
                           'assets/images/AniCard Icon.png', 
                           width: 240,
@@ -40,7 +83,6 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Card de Login responsivo
                         Expanded(
                           child: Container(
                             width: double.infinity,
@@ -58,7 +100,6 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             child: Column(
                               children: [
-                                // Título
                                 const Text(
                                   'LOGIN',
                                   style: TextStyle(
@@ -70,20 +111,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 const SizedBox(height: 32),
 
-                                // Input: Usuário/Email usando o CustomInputField
-                                const CustomInputField(
-                                  label: 'Nome de usuário ou Email:',
+                                CustomInputField(
+                                  label: 'Email:', // Firebase usa Email para login por padrão
+                                  controller: _emailController,
                                 ),
                                 const SizedBox(height: 20),
 
-                                // Input: Senha usando o CustomInputField
-                                const CustomInputField(
+                                CustomInputField(
                                   label: 'Senha:',
                                   obscureText: true,
+                                  controller: _passwordController,
                                 ),
                                 const SizedBox(height: 12),
 
-                                // Checkbox
                                 Row(
                                   children: [
                                     SizedBox(
@@ -104,47 +144,45 @@ class _LoginScreenState extends State<LoginScreen> {
                                     const SizedBox(width: 8),
                                     const Text(
                                       'Lembrar deste usuário',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 13,
-                                      ),
+                                      style: TextStyle(color: Colors.white, fontSize: 13),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 32),
 
-                                // Botão Entrar
-                                ElevatedButton(
-                                  onPressed: () {
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => const AniCardScreen()),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF1B3D21),
-                                    foregroundColor: const Color(0xFFC0C0C0),
-                                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: _isLoading ? null : _fazerLogin,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF1B3D21),
+                                      foregroundColor: const Color(0xFFC0C0C0),
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      elevation: 8,
                                     ),
-                                    elevation: 8,
-                                    shadowColor: Colors.black.withValues(alpha: 0.5),
-                                  ),
-                                  child: const Text(
-                                    'ENTRAR',
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 1.2,
-                                    ),
+                                    child: _isLoading
+                                        ? const SizedBox(
+                                            height: 24,
+                                            width: 24,
+                                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
+                                          )
+                                        : const Text(
+                                            'ENTRAR',
+                                            style: TextStyle(
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.w900,
+                                              letterSpacing: 1.2,
+                                            ),
+                                          ),
                                   ),
                                 ),
                                 
                                 const Spacer(),
                                 const SizedBox(height: 24),
 
-                                // Links de Ação
                                 GestureDetector(
                                   onTap: () {},
                                   child: const Text(
@@ -159,7 +197,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 
-                                // NAVEGAÇÃO PARA TELA DE REGISTRO
                                 GestureDetector(
                                   onTap: () {
                                     Navigator.push(

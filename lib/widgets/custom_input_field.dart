@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 class CustomInputField extends StatelessWidget {
   final String label;
   final bool obscureText;
+  final TextEditingController? controller;
 
   const CustomInputField({
     super.key,
     required this.label,
     this.obscureText = false, // O padrão será false, a menos que a gente mude (como na senha)
+    this.controller,
   });
 
   @override
@@ -41,6 +43,7 @@ class CustomInputField extends StatelessWidget {
             ],
           ),
           child: TextField(
+            controller: controller,
             obscureText: obscureText,
             decoration: const InputDecoration(
               border: InputBorder.none,
