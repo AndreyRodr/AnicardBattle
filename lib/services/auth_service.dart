@@ -79,4 +79,34 @@ class AuthService {
   Future<void> deslogar() async {
     await _auth.signOut();
   }
+
+   Future<void> atualizarPerfil({
+    required String uid,
+    String? novoUsername,
+    String? novoAvatarUrl,
+  }) async {
+    try {
+      Map<String, dynamic> dadosParaAtualizar = {};
+
+      if (novoUsername != null && novoUsername.isNotEmpty) {
+        dadosParaAtualizar['username'] = novoUsername;
+      }
+      
+      if (novoAvatarUrl != null && novoAvatarUrl.isNotEmpty) {
+        dadosParaAtualizar['avatarUrl'] = novoAvatarUrl;
+      }
+
+      if (dadosParaAtualizar.isNotEmpty) {
+        await _firestore
+            .collection('User')
+            .doc(uid)
+            .update(dadosParaAtualizar);
+            
+        print('Perfil atualizado com sucesso no Firestore.');
+      }
+    } catch (e) {
+      throw Exception('Erro ao atualizar perfil: $e');
+    }
+  }
 }
+
