@@ -39,6 +39,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     String? erro = await _authService.registrarUsuario(
       email: _emailController.text,
       password: _passwordController.text,
+      username: _usernameController.text,
     );
 
     // 4. Termina o carregamento e verifica o resultado
