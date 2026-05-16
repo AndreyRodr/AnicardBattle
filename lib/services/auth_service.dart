@@ -1,112 +1,76 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user_model.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // <-- NOVO: Pacote do Firestore
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance; // <-- NOVO: Instância do banco
 
-  // Função para Criar Conta (Registro)
+  // 1. Função para Criar Conta (Agora recebe o nome de usuário também!)
   Future<String?> registrarUsuario({
-      required String email, 
-      required String password,
-      required String username,
-    }) async {
+    required String nomeUsuario, 
+    required String email, 
+    required String password
+  }) async {
     try {
-      UserCredential credential = await _auth.createUserWithEmailAndPassword(
+      // Cria a conta no Firebase Auth (Login e Senha)
+      UserCredential credencial = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
 
-      User? novoUsuario = credential.user;
+      // Pega o ID único (UID) do usuário que acabou de ser criado
+      String uid = credencial.user!.uid;
 
-      if (novoUsuario != null) {
-        try {
-          UserModel novoJogador = UserModel(
-            id: novoUsuario.uid,
-            username: username,
-            email: email.trim(),
-            createdAt: DateTime.now(),
-          );
+      // 👇 A MÁGICA DO FIRESTORE ACONTECE AQUI 👇
+      // Cria um documento na coleção 'users' com o exato UID do jogador
+      await _firestore.collection('users').doc(uid).set({
+        'nomeUsuario': nomeUsuario.trim(),
+        'email': email.trim(),
+        'moedas': 1000,
+        
+        // Vamos dar 3 cartas iniciais para o jogador (usando os IDs do seu cards.json)
+        // Você pode mudar esses números para os IDs das cartas "padrão" do seu jogo
+        'cartasEquipadas': [1], 
+        'inventario': [1],
+        
+        'criadoEm': FieldValue.serverTimestamp(), // Salva a data e hora do registro
+      });
 
-          await _firestore
-            .collection("User")
-            .doc(novoJogador.id)
-            .set(novoJogador.toMap());
-
-          print('Jogador registrado com sucesso');
-        } catch (e) {
-          print('ERRO AO GRAVAR NO FIRESTORE: $e');
-          //rollback
-          await novoUsuario.delete();
-          throw Exception('Erro ao salvar dados no banco. Tente registrar novamente.');
-        }
-      }
-      return null; // Retorna nulo se deu tudo certo
+      return null; // Retorna nulo se deu tudo certo!
     } on FirebaseAuthException catch (e) {
-        if (e.code == 'weak-password') {
-          return 'A senha fornecida é muito fraca.';
-        } else if (e.code == 'email-already-in-use') {
-          return 'Já existe uma conta com este e-mail.';
-        } else if (e.code == 'invalid-email') {
-          return 'O formato do e-mail é inválido.';
-        }
-        return 'Erro ao criar conta: ${e.message}';
+      if (e.code == 'weak-password') {
+        return 'A senha fornecida é muito fraca.';
+      } else if (e.code == 'email-already-in-use') {
+        return 'Já existe uma conta com este e-mail.';
+      } else if (e.code == 'invalid-email') {
+        return 'O formato do e-mail é inválido.';
+      }
+      return 'Erro ao criar conta: ${e.message}';
     } catch (e) {
-        return 'Erro desconhecido: $e';
+      return 'Erro desconhecido: $e';
     }
   }
 
-  // Função para Entrar (Login)
+  // 2. Função para Entrar (Login)
   Future<String?> loginUsuario({required String email, required String password}) async {
     try {
       await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
-      return null; // Sucesso
+      return null; // Sucesso!
     } on FirebaseAuthException catch (e) {
-        if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
-          return 'E-mail ou senha incorretos.';
-        }
-        return 'Erro ao fazer login: ${e.message}';
+      if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
+        return 'E-mail ou senha incorretos.';
+      }
+      return 'Erro ao fazer login: ${e.message}';
     } catch (e) {
-        return 'Erro desconhecido: $e';
+      return 'Erro desconhecido: $e';
     }
   }
 
-  // Função para Deslogar
+  // 3. Função para Deslogar
   Future<void> deslogar() async {
     await _auth.signOut();
   }
-
-   Future<void> atualizarPerfil({
-    required String uid,
-    String? novoUsername,
-    String? novoAvatarUrl,
-  }) async {
-    try {
-      Map<String, dynamic> dadosParaAtualizar = {};
-
-      if (novoUsername != null && novoUsername.isNotEmpty) {
-        dadosParaAtualizar['username'] = novoUsername;
-      }
-      
-      if (novoAvatarUrl != null && novoAvatarUrl.isNotEmpty) {
-        dadosParaAtualizar['avatarUrl'] = novoAvatarUrl;
-      }
-
-      if (dadosParaAtualizar.isNotEmpty) {
-        await _firestore
-            .collection('User')
-            .doc(uid)
-            .update(dadosParaAtualizar);
-            
-        print('Perfil atualizado com sucesso no Firestore.');
-      }
-    } catch (e) {
-      throw Exception('Erro ao atualizar perfil: $e');
-    }
-  }
 }
-

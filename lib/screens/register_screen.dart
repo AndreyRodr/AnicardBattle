@@ -35,11 +35,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _isLoading = true;
     });
 
-    // 3. Chama o Firebase
+    // 3. Chama o Firebase (AGORA PASSANDO O NOME DE USUÁRIO!)
     String? erro = await _authService.registrarUsuario(
+      nomeUsuario: _usernameController.text, // <-- Adicionamos esta linha
       email: _emailController.text,
       password: _passwordController.text,
-      username: _usernameController.text,
     );
 
     // 4. Termina o carregamento e verifica o resultado

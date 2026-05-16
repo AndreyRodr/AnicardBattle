@@ -121,6 +121,10 @@ class _DeckViewState extends State<DeckView> {
               CardGridWidget(
                 cards: controller.equippedCards,
                 fixedSlots: 9, 
+                onCardTap: (carta) async {
+                  await controller.desequiparCarta(carta);
+                  setState(() {});
+                },
                 ),
               const Divider(color: Colors.brown, thickness: 2, height: 1),
             ],
@@ -153,7 +157,13 @@ class _DeckViewState extends State<DeckView> {
         const SizedBox(height: 16),
 
         // Cartas do Jogador (Inventário)
-        CardGridWidget(cards: controller.playerCards),
+        CardGridWidget(
+          cards: controller.playerCards,
+          onCardTap: (carta) async{
+            await controller.equiparCarta(carta);
+            setState(() {});
+          },
+        ),
       ],
     );
   }
