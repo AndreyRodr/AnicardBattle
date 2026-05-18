@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../screens/battle_screen.dart';
 
 class BattleView extends StatelessWidget {
   const BattleView({super.key});
@@ -41,7 +42,9 @@ class BattleView extends StatelessWidget {
             clipBehavior: Clip.hardEdge,
             child: InkWell(
               onTap: () {
-                print("BATTLE!");
+                Navigator.push(context, 
+                  MaterialPageRoute(builder: (context) => const BattleScreen())
+                ); 
               },
               splashColor: const Color.fromARGB(255, 26, 218, 68).withValues(alpha: 0.3),
               highlightColor: Colors.black.withValues(alpha: 0.3),
