@@ -8,7 +8,6 @@ import 'firebase_options.dart';
 import 'simulator/card_catalog.dart';
 import 'screens/home_screen.dart';  
 import 'screens/login_screen.dart'; 
-// import 'screens/card_sandbox.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
