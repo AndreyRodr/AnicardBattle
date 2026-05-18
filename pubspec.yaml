@@ -72,7 +72,6 @@ flutter:
     - assets/images/cards/
     - assets/data/
     - assets/data/cards.json
-    - assets/data/player_deck.json
     - .env
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
