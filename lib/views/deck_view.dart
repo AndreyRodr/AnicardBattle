@@ -4,7 +4,7 @@ import '../widgets/custom_tab_button.dart';
 import '../widgets/filter_bar_widget.dart';
 import '../widgets/card_grid_widget.dart';
 import '../widgets/colection_item_widget.dart';
-import '../widgets/card_widget.dart'; // 👈 Import necessário para renderizar a carta grande
+import '../widgets/card_widget.dart'; 
 
 class DeckView extends StatefulWidget {
   const DeckView({super.key});
@@ -33,14 +33,14 @@ class _DeckViewState extends State<DeckView> {
     super.initState();
     // Simulando o carregamento do banco de dados/Firebase
     controller.load().then((_) {
-      if (!mounted) return; // 👈 Proteção contra setState após dispose
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
     });
   }
 
-  // 👇 Nova função para exibir a carta em tela cheia com animação
+  // Função para exibir a carta em tela cheia com animação
   void _mostrarCartaAmpliada(BuildContext context, dynamic carta) {
     showDialog(
       context: context,
@@ -114,7 +114,7 @@ class _DeckViewState extends State<DeckView> {
             ),
           ),
           
-          // Espaço extra no final para a barra de baixo (Bottom Nav Bar) não cobrir a última carta!
+          // Espaço extra no final para a barra de baixo (Bottom Nav Bar) não cobrir a última carta
           const SizedBox(height: 100), 
         ],
       ),
@@ -152,10 +152,9 @@ class _DeckViewState extends State<DeckView> {
                 fixedSlots: 9, 
                 onCardTap: (carta) async {
                   await controller.desequiparCarta(carta);
-                  if (!mounted) return; // 👈 Proteção
+                  if (!mounted) return; 
                   setState(() {});
                 },
-                // 👇 Ativando o segurar para inspecionar
                 onCardLongPress: (carta) => _mostrarCartaAmpliada(context, carta),
               ),
               const Divider(color: Colors.brown, thickness: 2, height: 1),
@@ -192,11 +191,32 @@ class _DeckViewState extends State<DeckView> {
         CardGridWidget(
           cards: controller.playerCards,
           onCardTap: (carta) async {
+            // REGRA DO ALFA: Verifica se a carta clicada é Alpha
+            if (carta.isAlpha) {
+              // Verifica se já existe alguma carta Alpha equipada no deck
+              final jaTemAlfaEquipado = controller.equippedCards.any((c) => c.isAlpha);
+              
+              if (jaTemAlfaEquipado) {
+                // Mostra um aviso visual para o jogador e cancela a ação
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Você só pode ter uma carta Alfa equipada no deck!',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    backgroundColor: Colors.redAccent,
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+                return; 
+              }
+            }
+
+            // Se não barrou no Alfa, equipa normalmente
             await controller.equiparCarta(carta);
-            if (!mounted) return; // 👈 Proteção
+            if (!mounted) return;
             setState(() {});
           },
-          // 👇 Ativando o segurar para inspecionar no inventário também!
           onCardLongPress: (carta) => _mostrarCartaAmpliada(context, carta),
         ),
       ],
@@ -300,7 +320,7 @@ class _DeckViewState extends State<DeckView> {
               icon: const Icon(Icons.arrow_back, color: Colors.orangeAccent, size: 28),
               onPressed: () {
                 setState(() {
-                  _colecaoState = ColecaoState.home; // Volta pra home da coleção
+                  _colecaoState = ColecaoState.home; 
                 });
               },
             ),
@@ -315,7 +335,7 @@ class _DeckViewState extends State<DeckView> {
                 ),
               ),
             ),
-            const SizedBox(width: 48), // Espaço vazio para centralizar
+            const SizedBox(width: 48), // Espaço vazio para manter o texto centralizado
           ],
         ),
         const SizedBox(height: 16),
@@ -324,7 +344,6 @@ class _DeckViewState extends State<DeckView> {
         isCartas
             ? CardGridWidget(
                 cards: controller.playerCards,
-                // 👇 Ativando o toque longo também para olhar cartas dentro dos pacotes de coleção!
                 onCardLongPress: (carta) => _mostrarCartaAmpliada(context, carta),
               ) 
             : _buildGridPersonalizaveis(),
