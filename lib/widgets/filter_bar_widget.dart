@@ -20,85 +20,112 @@ class FilterBarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
+    // Opções que batem exatamente com o 'switch' lá no DeckView
+    final List<String> sortOptions = [
+      'Nome',
+      'Média'
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Colors.brown[800],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.brown[900]!, width: 2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Input de Busca
-          Expanded(
-            flex: 5,
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.brown[700],
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.brown[900]!, width: 2),
+          // --- 1. BARRA DE PESQUISA ---
+          TextField(
+            // Preenche o campo caso o estado seja atualizado
+            controller: TextEditingController.fromValue(
+              TextEditingValue(
+                text: searchQuery,
+                selection: TextSelection.collapsed(offset: searchQuery.length),
               ),
-              child: TextField(
-                style: const TextStyle(color: Colors.white, fontSize: 14),
-                decoration: const InputDecoration(
-                  hintText: 'Buscar por carta ou coleção:',
-                  hintStyle: TextStyle(color: Colors.white54, fontSize: 14),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  isDense: true,
-                ),
-                onChanged: onSearchChanged,
+            ),
+            onChanged: onSearchChanged,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: 'Pesquisar carta...',
+              hintStyle: const TextStyle(color: Colors.white54),
+              prefixIcon: const Icon(Icons.search, color: Colors.amberAccent),
+              filled: true,
+              fillColor: Colors.black26,
+              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
               ),
             ),
           ),
-          
-          const SizedBox(width: 8),
 
-          // Select de Ordenação
-          Expanded(
-            flex: 3,
-            child: Container(
-              height: 40,
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              decoration: BoxDecoration(
-                color: Colors.brown[700],
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.brown[900]!, width: 2),
+          const SizedBox(height: 12),
+
+          // --- 2. ORDENAÇÃO E DIREÇÃO ---
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Texto de label + Dropdown
+              Row(
+                children: [
+                  const Text(
+                    'Ordenar por:',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.black26,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: sortCriteria,
+                        dropdownColor: Colors.brown[900], // Fundo do menu aberto
+                        icon: const Icon(Icons.arrow_drop_down, color: Colors.amberAccent),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        items: sortOptions.map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: onSortChanged,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  value: sortCriteria,
-                  dropdownColor: Colors.brown[800],
-                  icon: const Icon(Icons.keyboard_arrow_down, color: Colors.white54, size: 20),
-                  isExpanded: true,
-                  style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  items: ['Aquisição', 'Alfabética', 'Poder'].map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: onSortChanged,
+
+              // Botão de Crescente / Decrescente
+              InkWell(
+                onTap: onOrderToggled,
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  height: 36,
+                  width: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.black26,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    isAscending ? Icons.arrow_upward : Icons.arrow_downward,
+                    color: Colors.amberAccent,
+                    size: 20,
+                  ),
                 ),
               ),
-            ),
-          ),
-          
-          const SizedBox(width: 8),
-
-          // Botão de Ordem (Crescente/Decrescente)
-          GestureDetector(
-            onTap: onOrderToggled,
-            child: Container(
-              height: 40,
-              width: 40,
-              decoration: BoxDecoration(
-                color: Colors.brown[700],
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.brown[900]!, width: 2),
-              ),
-              child: Icon(
-                isAscending ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
-                color: Colors.white54,
-                size: 20,
-              ),
-            ),
+            ],
           ),
         ],
       ),

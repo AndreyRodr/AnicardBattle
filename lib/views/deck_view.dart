@@ -22,11 +22,53 @@ class _DeckViewState extends State<DeckView> {
   // Estados de controle
   int _currentIndex = 0;
   String _searchQuery = '';
-  String _sortCriteria = 'Aquisição';
+  String _sortCriteria = 'Nome';
   bool _isAscending = true;
 
   ColecaoState _colecaoState = ColecaoState.home;
   String _detalheTitulo = '';
+
+  // Getter que processa a lista de cartas com base nos filtros atuais
+  List<dynamic> get _cartasFiltradas {
+    // 1. Fazemos uma cópia para não mexer na lista original do Controller
+    List<dynamic> lista = List.from(controller.playerCards);
+
+    // 2. Aplicar a Pesquisa por Nome
+    if (_searchQuery.trim().isNotEmpty) {
+      lista = lista.where((carta) {
+        return carta.name.toLowerCase().contains(_searchQuery.toLowerCase());
+      }).toList();
+    }
+
+    // 3. Aplicar a Ordenação
+    lista.sort((a, b) {
+      int comparacao = 0;
+      
+      // Verifique se os nomes batem exatamente com as opções do seu FilterBarWidget
+      switch (_sortCriteria) {
+        case 'Nome':
+          comparacao = a.name.compareTo(b.name);
+          break;
+        case 'Média':
+          comparacao = a.media.compareTo(b.media);
+          break;
+        default:
+          // O ideal aqui seria comparar por um "a.id" ou data de criação.
+          // Como padrão, 0 mantém a ordem original da lista.
+          comparacao = 0;
+          break;
+      }
+      return comparacao;
+    });
+
+    // 4. Aplicar a Ordem (Crescente ou Decrescente)
+    // Se a setinha estiver para baixo (Decrescente), invertemos a lista
+    if (!_isAscending) {
+      lista = lista.reversed.toList();
+    }
+
+    return lista;
+  }
 
   @override
   void initState() {
@@ -171,17 +213,14 @@ class _DeckViewState extends State<DeckView> {
           isAscending: _isAscending,
           onSearchChanged: (value) {
             setState(() => _searchQuery = value);
-            // controller.filterCards(value);
           },
           onSortChanged: (value) {
             if (value != null) {
               setState(() => _sortCriteria = value);
-              // controller.sortCards(value);
             }
           },
           onOrderToggled: () {
             setState(() => _isAscending = !_isAscending);
-            // controller.reverseCards();
           },
         ),
 
@@ -189,7 +228,7 @@ class _DeckViewState extends State<DeckView> {
 
         // Cartas do Jogador (Inventário)
         CardGridWidget(
-          cards: controller.playerCards,
+          cards: _cartasFiltradas,
           onCardTap: (carta) async {
             // REGRA DO ALFA: Verifica se a carta clicada é Alpha
             if (carta.isAlpha) {
