@@ -1,6 +1,9 @@
 class CardModel {
   final int id;
-  final String image;
+  final String name;
+  final String imagePath;
+  final String pack;
+  final bool isAlpha;
   
   // Atributos
   final int instintoAssassino;
@@ -12,14 +15,16 @@ class CardModel {
 
   CardModel({
     required this.id,
-    required this.image,
+    required this.name,
+    required this.imagePath,
+    required this.pack,
+    required this.isAlpha,
     required this.instintoAssassino,
     required this.forca,
     required this.peso,
     required this.inteligencia,
     required this.agilidade,
     required this.media,
-    // required this.nome,
   });
 
   factory CardModel.fromJson(Map<String, dynamic> json) {
@@ -27,11 +32,15 @@ class CardModel {
     final attributes = json['attributes'] as Map<String, dynamic>? ?? {};
 
     return CardModel(
-      // Converte o id com segurança, independentemente de vir como String ou Int no JSON
+      // Converte o id com segurança
       id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
       
-      // Mapeamento do caminho da imagem
-      image: json['image'] ?? '',
+      name: json['name'] ?? 'Desconhecido',
+      pack: json['pack'] ?? 'desconhecido',
+      isAlpha: json['isAlpha'] ?? false,
+      
+      // Mapeamento do caminho da imagem (lê de "image" no JSON)
+      imagePath: json['image'] ?? 'assets/images/cards/default.png',
       
       // Mapeamento dos atributos aninhados
       instintoAssassino: attributes['instintoAssassino'] ?? 0,
@@ -40,7 +49,25 @@ class CardModel {
       inteligencia: attributes['inteligencia'] ?? 0,
       agilidade: attributes['agilidade'] ?? 0,
       media: attributes['media'] ?? 0,
-      
     );
+  }
+
+  // É sempre uma boa prática ter o toJson para quando formos salvar dados no banco
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'image': imagePath,
+      'pack': pack,
+      'isAlpha': isAlpha,
+      'attributes': {
+        'instintoAssassino': instintoAssassino,
+        'forca': forca,
+        'peso': peso,
+        'inteligencia': inteligencia,
+        'agilidade': agilidade,
+        'media': media,
+      }
+    };
   }
 }

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import '../models/card_model.dart'; // Garante que o grid conheça a estrutura da carta
+import 'card_widget.dart'; // Importa o nosso novo molde visual
 
 class CardGridWidget extends StatelessWidget {
   final List<dynamic> cards;
-  final int? fixedSlots; // NOVO: Permite forçar o grid a ter um tamanho fixo (ex: 9)
+  final int? fixedSlots; // Permite forçar o grid a ter um tamanho fixo (ex: 9)
   final Function(dynamic card)? onCardTap; 
 
   const CardGridWidget({
     super.key, 
     required this.cards,
-    this.fixedSlots, // Adicionado no construtor
+    this.fixedSlots, 
     this.onCardTap,
   });
 
@@ -34,7 +36,7 @@ class CardGridWidget extends StatelessWidget {
       shrinkWrap: true, 
       physics: const NeverScrollableScrollPhysics(), 
       padding: const EdgeInsets.all(12.0),
-      itemCount: count, // Usa a nossa nova variável count
+      itemCount: count,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3, 
         childAspectRatio: 0.7, 
@@ -61,34 +63,12 @@ class CardGridWidget extends StatelessWidget {
           onCardTap!(card);
         }
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF2E4032), 
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.black87, width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
-              blurRadius: 4,
-              offset: const Offset(2, 2),
-            ),
-          ],
-        ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(4.0),
-              child: Image.asset(
-                card.image, // Puxa do seu modelo
-                fit: BoxFit.cover, 
-              ),
-            ),
-          ),
-        ],
+      // 👇 Aqui está a grande mágica! O GridView cuida do tamanho 
+      // e o CardWidget cuida de desenhar todos os detalhes visuais.
+      child: CardWidget(
+        card: card as CardModel, // Converte o dynamic para CardModel
       ),
-    ));
+    );
   }
 
   // --- O VISUAL DO ESPAÇO VAZIO ---
