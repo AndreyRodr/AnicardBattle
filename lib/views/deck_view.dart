@@ -4,6 +4,7 @@ import '../widgets/custom_tab_button.dart';
 import '../widgets/filter_bar_widget.dart';
 import '../widgets/card_grid_widget.dart';
 import '../widgets/colection_item_widget.dart';
+import '../widgets/card_widget.dart'; // 👈 Import necessário para renderizar a carta grande
 
 class DeckView extends StatefulWidget {
   const DeckView({super.key});
@@ -32,11 +33,39 @@ class _DeckViewState extends State<DeckView> {
     super.initState();
     // Simulando o carregamento do banco de dados/Firebase
     controller.load().then((_) {
-      if (!mounted) return;
+      if (!mounted) return; // 👈 Proteção contra setState após dispose
       setState(() {
         isLoading = false;
       });
     });
+  }
+
+  // 👇 Nova função para exibir a carta em tela cheia com animação
+  void _mostrarCartaAmpliada(BuildContext context, dynamic carta) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return GestureDetector(
+          // Tocar em qualquer lugar (fundo ou carta) fecha o popup
+          onTap: () => Navigator.of(context).pop(),
+          child: Dialog(
+            backgroundColor: Colors.transparent, // Fundo invisível
+            elevation: 0, 
+            insetPadding: const EdgeInsets.all(16),
+            child: Center(
+              child: Hero(
+                tag: 'carta_animacao_${carta.name}', // Deve ser a MESMA tag do grid
+                child: CardWidget(
+                  card: carta,
+                  scale: 1.6, // Deixa a carta gigante na tela
+                  isFacedown: false,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -50,7 +79,6 @@ class _DeckViewState extends State<DeckView> {
     }
 
     return SingleChildScrollView(
-      // physics: const BouncingScrollPhysics(), // Opcional: efeito de elástico ao rolar (estilo iOS)
       child: Column(
         children: [
           // --- Seção de Abas (Decks / Coleção) ---
@@ -86,7 +114,7 @@ class _DeckViewState extends State<DeckView> {
             ),
           ),
           
-          // 👇 Espaço extra no final para a barra de baixo (Bottom Nav Bar) não cobrir a última carta!
+          // Espaço extra no final para a barra de baixo (Bottom Nav Bar) não cobrir a última carta!
           const SizedBox(height: 100), 
         ],
       ),
@@ -124,9 +152,12 @@ class _DeckViewState extends State<DeckView> {
                 fixedSlots: 9, 
                 onCardTap: (carta) async {
                   await controller.desequiparCarta(carta);
+                  if (!mounted) return; // 👈 Proteção
                   setState(() {});
                 },
-                ),
+                // 👇 Ativando o segurar para inspecionar
+                onCardLongPress: (carta) => _mostrarCartaAmpliada(context, carta),
+              ),
               const Divider(color: Colors.brown, thickness: 2, height: 1),
             ],
           ),
@@ -160,10 +191,13 @@ class _DeckViewState extends State<DeckView> {
         // Cartas do Jogador (Inventário)
         CardGridWidget(
           cards: controller.playerCards,
-          onCardTap: (carta) async{
+          onCardTap: (carta) async {
             await controller.equiparCarta(carta);
+            if (!mounted) return; // 👈 Proteção
             setState(() {});
           },
+          // 👇 Ativando o segurar para inspecionar no inventário também!
+          onCardLongPress: (carta) => _mostrarCartaAmpliada(context, carta),
         ),
       ],
     );
@@ -281,14 +315,18 @@ class _DeckViewState extends State<DeckView> {
                 ),
               ),
             ),
-            const SizedBox(width: 48), // Espaço vazio para manter o texto perfeitamente centralizado
+            const SizedBox(width: 48), // Espaço vazio para centralizar
           ],
         ),
         const SizedBox(height: 16),
 
         // Mostra o Grid de Cartas ou o Grid de Itens Personalizáveis
         isCartas
-            ? CardGridWidget(cards: controller.playerCards) 
+            ? CardGridWidget(
+                cards: controller.playerCards,
+                // 👇 Ativando o toque longo também para olhar cartas dentro dos pacotes de coleção!
+                onCardLongPress: (carta) => _mostrarCartaAmpliada(context, carta),
+              ) 
             : _buildGridPersonalizaveis(),
       ],
     );
@@ -297,11 +335,9 @@ class _DeckViewState extends State<DeckView> {
   // --- Grid específico para bordas, arenas, etc ---
   Widget _buildGridPersonalizaveis() {
     return GridView.builder(
-      // 👇 Aqui a mesma regra de ouro!
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      
-      itemCount: 9, // Quantidade mockada para teste
+      itemCount: 9, 
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         childAspectRatio: 0.8,

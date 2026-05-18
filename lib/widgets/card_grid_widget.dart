@@ -5,13 +5,15 @@ import 'card_widget.dart'; // Importa o nosso novo molde visual
 class CardGridWidget extends StatelessWidget {
   final List<dynamic> cards;
   final int? fixedSlots; // Permite forçar o grid a ter um tamanho fixo (ex: 9)
-  final Function(dynamic card)? onCardTap; 
+  final Function(dynamic card)? onCardTap;
+  final Function(dynamic card)? onCardLongPress; // 👈 1. Adicionada a propriedade
 
   const CardGridWidget({
     super.key, 
     required this.cards,
     this.fixedSlots, 
     this.onCardTap,
+    this.onCardLongPress, // 👈 2. Adicionado ao construtor
   });
 
   @override
@@ -57,16 +59,28 @@ class CardGridWidget extends StatelessWidget {
 
   // --- O VISUAL DA CARTA REAL ---
   Widget _buildRealCard(dynamic card) {
+    // Fazemos o cast aqui para facilitar o acesso às propriedades
+    final cardModel = card as CardModel; 
+
     return GestureDetector(
       onTap: () {
         if (onCardTap != null){
           onCardTap!(card);
         }
       },
-      // 👇 Aqui está a grande mágica! O GridView cuida do tamanho 
-      // e o CardWidget cuida de desenhar todos os detalhes visuais.
-      child: CardWidget(
-        card: card as CardModel, // Converte o dynamic para CardModel
+      // 👇 3. Chama a função de clique longo!
+      onLongPress: () {
+        if (onCardLongPress != null) {
+          onCardLongPress!(card);
+        }
+      },
+      // 👇 4. O Widget Hero para a animação. 
+      // Dica: Use cardModel.name ou cardModel.id (se tiver) para a tag ser única
+      child: Hero(
+        tag: 'carta_animacao_${cardModel.name}', 
+        child: CardWidget(
+          card: cardModel, 
+        ),
       ),
     );
   }
