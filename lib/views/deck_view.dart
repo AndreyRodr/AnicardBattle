@@ -32,6 +32,7 @@ class _DeckViewState extends State<DeckView> {
     super.initState();
     // Simulando o carregamento do banco de dados/Firebase
     controller.load().then((_) {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });
