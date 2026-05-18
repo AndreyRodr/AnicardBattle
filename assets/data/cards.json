@@ -224,6 +224,52 @@
         "agilidade": 80,
         "media": 53
       }
+    },
+    {
+      "id": 16,
+      "name": "Aranha-Armadeira",
+      "image": "assets/images/cards/aranha-armadeira.png",
+      "pack": "floresta_amazonica",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 99,
+        "forca": 15,
+        "peso": 1,
+        "inteligencia": 25,
+        "agilidade": 75,
+        "media": 43
+      }
+    },
+    {
+      "id": 17,
+      "name": "Piranha-Vermelha",
+      "image": "assets/images/cards/piranha-vermelha.png",
+      "pack": "floresta_amazonica",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 98,
+        "forca": 45,
+        "peso": 5,
+        "inteligencia": 40,
+        "agilidade": 82,
+        "media": 54
+      }
+    },
+    {
+      "id": 18,
+      "name": "Boto-Cor-de-Rosa",
+      "image": "assets/images/cards/boto-cor-de-rosa.png",
+      "pack": "floresta_amazonica",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 10,
+        "forca": 65,
+        "peso": 90,
+        "inteligencia": 99,
+        "agilidade": 75,
+        "media": 67
+      }
     }
+    
   ]
 }
