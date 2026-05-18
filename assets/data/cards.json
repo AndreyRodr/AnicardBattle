@@ -1,7 +1,7 @@
 {
   "cards": [
     {
-      "id": 10,
+      "id": 1,
       "name": "Tatu-Canastra",
       "image": "assets/images/cards/tatu-canastra.png",
       "pack": "floresta_amazonica",
@@ -136,7 +136,7 @@
       }
     },
     {
-      "id": 1,
+      "id": 10,
       "name": "Hiena",
       "image": "assets/images/cards/hiena.png",
       "pack": "savana_africana",
