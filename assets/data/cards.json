@@ -13,218 +13,217 @@
         "agilidade": 25,
         "media": 33
       },
-    "isAlpha": false
+      "isAlpha": false
     },
-    
-  {
-    "id": 2,
-    "name": "Onça-Pintada",
-    "image": "assets/images/cards/onca-pintada.png",
-    "pack": "floresta_amazonica",
-    "isAlpha": true,
-    "attributes": {
-      "instintoAssassino": 95,
-      "forca": 85,
-      "peso": 65,
-      "inteligencia": 75,
-      "agilidade": 85,
-      "media": 81
+    {
+      "id": 2,
+      "name": "Onça-Pintada",
+      "image": "assets/images/cards/onca-pintada.png",
+      "pack": "floresta_amazonica",
+      "isAlpha": true,
+      "attributes": {
+        "instintoAssassino": 95,
+        "forca": 85,
+        "peso": 65,
+        "inteligencia": 75,
+        "agilidade": 85,
+        "media": 81
+      }
+    },
+    {
+      "id": 3,
+      "name": "Arara-Azul",
+      "image": "assets/images/cards/arara-azul.png",
+      "pack": "floresta_amazonica",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 5,
+        "forca": 20,
+        "peso": 5,
+        "inteligencia": 80,
+        "agilidade": 85,
+        "media": 39
+      }
+    },
+    {
+      "id": 4,
+      "name": "Jacaré-Açu",
+      "image": "assets/images/cards/jacare-acu.png",
+      "pack": "floresta_amazonica",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 85,
+        "forca": 88,
+        "peso": 85,
+        "inteligencia": 40,
+        "agilidade": 50,
+        "media": 70
+      }
+    },
+    {
+      "id": 5,
+      "name": "Sucuri Gigante",
+      "image": "assets/images/cards/sucuri.png",
+      "pack": "floresta_amazonica",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 80,
+        "forca": 85,
+        "peso": 75,
+        "inteligencia": 35,
+        "agilidade": 40,
+        "media": 63
+      }
+    },
+    {
+      "id": 6,
+      "name": "Leão",
+      "image": "assets/images/cards/leao.png",
+      "pack": "savana_africana",
+      "isAlpha": true,
+      "attributes": {
+        "instintoAssassino": 90,
+        "forca": 85,
+        "peso": 75,
+        "inteligencia": 75,
+        "agilidade": 75,
+        "media": 80
+      }
+    },
+    {
+      "id": 7,
+      "name": "Elefante Africano",
+      "image": "assets/images/cards/elefante.png",
+      "pack": "savana_africana",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 20,
+        "forca": 100,
+        "peso": 100,
+        "inteligencia": 95,
+        "agilidade": 30,
+        "media": 69
+      }
+    },
+    {
+      "id": 8,
+      "name": "Guepardo",
+      "image": "assets/images/cards/guepardo.png",
+      "pack": "savana_africana",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 80,
+        "forca": 40,
+        "peso": 35,
+        "inteligencia": 60,
+        "agilidade": 100,
+        "media": 63
+      }
+    },
+    {
+      "id": 9,
+      "name": "Rinoceronte",
+      "image": "assets/images/cards/rinoceronte.png",
+      "pack": "savana_africana",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 60,
+        "forca": 95,
+        "peso": 95,
+        "inteligencia": 35,
+        "agilidade": 45,
+        "media": 66
+      }
+    },
+    {
+      "id": 10,
+      "name": "Hiena",
+      "image": "assets/images/cards/hiena.png",
+      "pack": "savana_africana",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 85,
+        "forca": 65,
+        "peso": 45,
+        "inteligencia": 80,
+        "agilidade": 65,
+        "media": 68
+      }
+    },
+    {
+      "id": 11,
+      "name": "Urso Polar",
+      "image": "assets/images/cards/urso-polar.png",
+      "pack": "tundra_polar",
+      "isAlpha": true,
+      "attributes": {
+        "instintoAssassino": 95,
+        "forca": 95,
+        "peso": 90,
+        "inteligencia": 70,
+        "agilidade": 60,
+        "media": 82
+      }
+    },
+    {
+      "id": 12,
+      "name": "Lobo do Ártico",
+      "image": "assets/images/cards/lobo-artico.png",
+      "pack": "tundra_polar",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 85,
+        "forca": 60,
+        "peso": 40,
+        "inteligencia": 85,
+        "agilidade": 75,
+        "media": 69
+      }
+    },
+    {
+      "id": 13,
+      "name": "Pinguim-Imperador",
+      "image": "assets/images/cards/pinguim.png",
+      "pack": "tundra_polar",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 15,
+        "forca": 20,
+        "peso": 25,
+        "inteligencia": 60,
+        "agilidade": 70,
+        "media": 38
+      }
+    },
+    {
+      "id": 14,
+      "name": "Morsa",
+      "image": "assets/images/cards/morsa.png",
+      "pack": "tundra_polar",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 30,
+        "forca": 80,
+        "peso": 90,
+        "inteligencia": 55,
+        "agilidade": 25,
+        "media": 56
+      }
+    },
+    {
+      "id": 15,
+      "name": "Raposa-do-Ártico",
+      "image": "assets/images/cards/raposa-artico.png",
+      "pack": "tundra_polar",
+      "isAlpha": false,
+      "attributes": {
+        "instintoAssassino": 65,
+        "forca": 25,
+        "peso": 15,
+        "inteligencia": 80,
+        "agilidade": 80,
+        "media": 53
+      }
     }
-  },
-  {
-    "id": 3,
-    "name": "Arara-Azul",
-    "image": "assets/images/cards/arara-azul.png",
-    "pack": "floresta_amazonica",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 5,
-      "forca": 20,
-      "peso": 5,
-      "inteligencia": 80,
-      "agilidade": 85,
-      "media": 39
-    }
-  },
-  {
-    "id": 4,
-    "name": "Jacaré-Açu",
-    "image": "assets/images/cards/jacare-acu.png",
-    "pack": "floresta_amazonica",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 85,
-      "forca": 88,
-      "peso": 85,
-      "inteligencia": 40,
-      "agilidade": 50,
-      "media": 70
-    }
-  },
-  {
-    "id": 5,
-    "name": "Sucuri Gigante",
-    "image": "assets/images/cards/sucuri.png",
-    "pack": "floresta_amazonica",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 80,
-      "forca": 85,
-      "peso": 75,
-      "inteligencia": 35,
-      "agilidade": 40,
-      "media": 63
-    }
-  },
-  {
-    "id": 6,
-    "name": "Leão",
-    "image": "assets/images/cards/leao.png",
-    "pack": "savana_africana",
-    "isAlpha": true,
-    "attributes": {
-      "instintoAssassino": 90,
-      "forca": 85,
-      "peso": 75,
-      "inteligencia": 75,
-      "agilidade": 75,
-      "media": 80
-    }
-  },
-  {
-    "id": 7,
-    "name": "Elefante Africano",
-    "image": "assets/images/cards/elefante.png",
-    "pack": "savana_africana",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 20,
-      "forca": 100,
-      "peso": 100,
-      "inteligencia": 95,
-      "agilidade": 30,
-      "media": 69
-    }
-  },
-  {
-    "id": 8,
-    "name": "Guepardo",
-    "image": "assets/images/cards/guepardo.png",
-    "pack": "savana_africana",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 80,
-      "forca": 40,
-      "peso": 35,
-      "inteligencia": 60,
-      "agilidade": 100,
-      "media": 63
-    }
-  },
-  {
-    "id": 9,
-    "name": "Rinoceronte",
-    "image": "assets/images/cards/rinoceronte.png",
-    "pack": "savana_africana",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 60,
-      "forca": 95,
-      "peso": 95,
-      "inteligencia": 35,
-      "agilidade": 45,
-      "media": 66
-    }
-  },
-  {
-    "id": 10,
-    "name": "Hiena",
-    "image": "assets/images/cards/hiena.png",
-    "pack": "savana_africana",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 85,
-      "forca": 65,
-      "peso": 45,
-      "inteligencia": 80,
-      "agilidade": 65,
-      "media": 68
-    }
-  },
-  {
-    "id": 11,
-    "name": "Urso Polar",
-    "image": "assets/images/cards/urso-polar.png",
-    "pack": "tundra_polar",
-    "isAlpha": true,
-    "attributes": {
-      "instintoAssassino": 95,
-      "forca": 95,
-      "peso": 90,
-      "inteligencia": 70,
-      "agilidade": 60,
-      "media": 82
-    }
-  },
-  {
-    "id": 12,
-    "name": "Lobo do Ártico",
-    "image": "assets/images/cards/lobo-artico.png",
-    "pack": "tundra_polar",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 85,
-      "forca": 60,
-      "peso": 40,
-      "inteligencia": 85,
-      "agilidade": 75,
-      "media": 69
-    }
-  },
-  {
-    "id": 13,
-    "name": "Pinguim-Imperador",
-    "image": "assets/images/cards/pinguim.png",
-    "pack": "tundra_polar",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 15,
-      "forca": 20,
-      "peso": 25,
-      "inteligencia": 60,
-      "agilidade": 70,
-      "media": 38
-    }
-  },
-  {
-    "id": 14,
-    "name": "Morsa",
-    "image": "assets/images/cards/morsa.png",
-    "pack": "tundra_polar",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 30,
-      "forca": 80,
-      "peso": 90,
-      "inteligencia": 55,
-      "agilidade": 25,
-      "media": 56
-    }
-  },
-  {
-    "id": 15,
-    "name": "Raposa-do-Ártico",
-    "image": "assets/images/cards/raposa-artico.png",
-    "pack": "tundra_polar",
-    "isAlpha": false,
-    "attributes": {
-      "instintoAssassino": 65,
-      "forca": 25,
-      "peso": 15,
-      "inteligencia": 80,
-      "agilidade": 80,
-      "media": 53
-    }
-  }
-]
+  ]
 }
