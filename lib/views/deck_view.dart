@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../controllers/deck_controller.dart';
+import '../simulator/card_catalog.dart'; 
 import '../widgets/custom_tab_button.dart';
 import '../widgets/filter_bar_widget.dart';
 import '../widgets/card_grid_widget.dart';
@@ -28,23 +29,44 @@ class _DeckViewState extends State<DeckView> {
   ColecaoState _colecaoState = ColecaoState.home;
   String _detalheTitulo = '';
 
-  // Getter que processa a lista de cartas com base nos filtros atuais
+  // 🌟 LÓGICA ATUALIZADA: Agrupa por Desbloqueadas primeiro, e Bloqueadas por último
   List<dynamic> get _cartasFiltradas {
-    // 1. Fazemos uma cópia para não mexer na lista original do Controller
+    // 1. Começamos com as cartas que estão livres e disponíveis no inventário
     List<dynamic> lista = List.from(controller.playerCards);
 
-    // 2. Aplicar a Pesquisa por Nome
+    // 2. Buscamos o catálogo completo para injetar as cartas de exibição BLOQUEADAS
+    List<dynamic> todasDoCatalogo = CardCatalog.getAllCards();
+    
+    for (var carta in todasDoCatalogo) {
+      bool noInventario = controller.playerCards.any((c) => c.id == carta.id);
+      bool noDeck = controller.equippedCards.any((c) => c.id == carta.id);
+      
+      // Se o jogador não tem no inventário E NEM no deck, ela entra como bloqueada
+      if (!noInventario && !noDeck) {
+        lista.add(carta);
+      }
+    }
+
+    // 3. Aplicar a Pesquisa por Nome (se houver texto digitado)
     if (_searchQuery.trim().isNotEmpty) {
       lista = lista.where((carta) {
         return carta.name.toLowerCase().contains(_searchQuery.toLowerCase());
       }).toList();
     }
 
-    // 3. Aplicar a Ordenação
+    // 4. 🌟 ORDENAÇÃO DUPLO ESTÁGIO: Bloqueio primeiro, Critério depois
     lista.sort((a, b) {
+      // Verifica se o jogador possui fisicamente cada uma das cartas na coleção
+      bool aPossui = controller.playerCards.any((c) => c.id == a.id);
+      bool bPossui = controller.playerCards.any((c) => c.id == b.id);
+
+      // CRITÉRIO 1: Se uma for desbloqueada e a outra bloqueada, a desbloqueada vem primeiro
+      if (aPossui && !bPossui) return -1; // 'a' sobe na lista
+      if (!aPossui && bPossui) return 1;  // 'b' sobe na lista
+
+      // CRITÉRIO 2 (Desempate): Se ambas forem do mesmo tipo (ambas liberadas ou ambas trancadas),
+      // aí sim aplica o filtro selecionado pelo usuário (Nome ou Média)
       int comparacao = 0;
-      
-      // Verifique se os nomes batem exatamente com as opções do seu FilterBarWidget
       switch (_sortCriteria) {
         case 'Nome':
           comparacao = a.name.compareTo(b.name);
@@ -53,16 +75,13 @@ class _DeckViewState extends State<DeckView> {
           comparacao = a.media.compareTo(b.media);
           break;
         default:
-          // O ideal aqui seria comparar por um "a.id" ou data de criação.
-          // Como padrão, 0 mantém a ordem original da lista.
           comparacao = 0;
           break;
       }
       return comparacao;
     });
 
-    // 4. Aplicar a Ordem (Crescente ou Decrescente)
-    // Se a setinha estiver para baixo (Decrescente), invertemos a lista
+    // 5. Aplicar a inversão de ordem (Crescente ou Decrescente)
     if (!_isAscending) {
       lista = lista.reversed.toList();
     }
@@ -73,7 +92,6 @@ class _DeckViewState extends State<DeckView> {
   @override
   void initState() {
     super.initState();
-    // Simulando o carregamento do banco de dados/Firebase
     controller.load().then((_) {
       if (!mounted) return;
       setState(() {
@@ -82,24 +100,22 @@ class _DeckViewState extends State<DeckView> {
     });
   }
 
-  // Função para exibir a carta em tela cheia com animação
   void _mostrarCartaAmpliada(BuildContext context, dynamic carta) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return GestureDetector(
-          // Tocar em qualquer lugar (fundo ou carta) fecha o popup
           onTap: () => Navigator.of(context).pop(),
           child: Dialog(
-            backgroundColor: Colors.transparent, // Fundo invisível
+            backgroundColor: Colors.transparent, 
             elevation: 0, 
             insetPadding: const EdgeInsets.all(16),
             child: Center(
               child: Hero(
-                tag: 'carta_animacao_${carta.name}', // Deve ser a MESMA tag do grid
+                tag: 'carta_animacao_${carta.name}', 
                 child: CardWidget(
                   card: carta,
-                  scale: 1.6, // Deixa a carta gigante na tela
+                  scale: 1.6, 
                   isFacedown: false,
                 ),
               ),
@@ -123,7 +139,6 @@ class _DeckViewState extends State<DeckView> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // --- Seção de Abas (Decks / Coleção) ---
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12.0),
             child: Row(
@@ -144,7 +159,6 @@ class _DeckViewState extends State<DeckView> {
             ),
           ),
 
-          // --- Área de visualização principal ---
           Container(
             margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: IndexedStack(
@@ -156,7 +170,6 @@ class _DeckViewState extends State<DeckView> {
             ),
           ),
           
-          // Espaço extra no final para a barra de baixo (Bottom Nav Bar) não cobrir a última carta
           const SizedBox(height: 100), 
         ],
       ),
@@ -169,7 +182,6 @@ class _DeckViewState extends State<DeckView> {
   Widget _buildDecksView() {
     return Column(
       children: [
-        // Container das Cartas Equipadas
         Container(
           decoration: BoxDecoration(
             color: Colors.brown[800],
@@ -206,7 +218,6 @@ class _DeckViewState extends State<DeckView> {
 
         const SizedBox(height: 16),
 
-        // Barra de Filtros
         FilterBarWidget(
           searchQuery: _searchQuery,
           sortCriteria: _sortCriteria,
@@ -226,44 +237,69 @@ class _DeckViewState extends State<DeckView> {
 
         const SizedBox(height: 16),
 
-        // Cartas do Jogador (Inventário)
-        CardGridWidget(
-          cards: _cartasFiltradas,
-          onCardTap: (carta) async {
-            // REGRA DO ALFA: Verifica se a carta clicada é Alpha
-            if (carta.isAlpha) {
-              // Verifica se já existe alguma carta Alpha equipada no deck
-              final jaTemAlfaEquipado = controller.equippedCards.any((c) => c.isAlpha);
-              
-              if (jaTemAlfaEquipado) {
-                // Mostra um aviso visual para o jogador e cancela a ação
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Você só pode ter uma carta Alfa equipada no deck!',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    backgroundColor: Colors.redAccent,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
-                return; 
-              }
-            }
+        GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: _cartasFiltradas.length,
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 3,
+            childAspectRatio: 0.7,
+            crossAxisSpacing: 10,
+            mainAxisSpacing: 10,
+          ),
+          itemBuilder: (context, index) {
+            final carta = _cartasFiltradas[index];
+            
+            bool possuiNaColecao = controller.playerCards.any((c) => c.id == carta.id);
 
-            // Se não barrou no Alfa, equipa normalmente
-            await controller.equiparCarta(carta);
-            if (!mounted) return;
-            setState(() {});
+            Widget cardVisual = CardWidget(card: carta, isFacedown: false);
+
+            if (possuiNaColecao) {
+              return GestureDetector(
+                onTap: () async {
+                  if (carta.isAlpha) {
+                    final jaTemAlfaEquipado = controller.equippedCards.any((c) => c.isAlpha);
+                    if (jaTemAlfaEquipado) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Você só pode ter uma carta Alfa equipada no deck!', style: TextStyle(fontWeight: FontWeight.bold)),
+                          backgroundColor: Colors.redAccent,
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                      return; 
+                    }
+                  }
+                  await controller.equiparCarta(carta);
+                  if (!mounted) return;
+                  setState(() {});
+                },
+                onLongPress: () => _mostrarCartaAmpliada(context, carta),
+                child: cardVisual,
+              );
+            } else {
+              return GestureDetector(
+                onTap: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Abra pacotes para desbloquear o(a) ${carta.name}!'),
+                      backgroundColor: const Color(0xFF1B3620),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+                onLongPress: () => _mostrarCartaAmpliada(context, carta), 
+                child: LockedCardWidget(cardWidget: cardVisual),
+              );
+            }
           },
-          onCardLongPress: (carta) => _mostrarCartaAmpliada(context, carta),
         ),
       ],
     );
   }
 
   // ==========================================
-  // VIEW 2: COLEÇÃO
+  // VIEW 2: COLEÇÃO (Mantida igual)
   // ==========================================
   Widget _buildColecaoView() {
     return Container(
@@ -281,7 +317,6 @@ class _DeckViewState extends State<DeckView> {
     );
   }
 
-  // --- Home das Coleções ---
   Widget _buildColecaoHome() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -348,11 +383,13 @@ class _DeckViewState extends State<DeckView> {
     );
   }
 
-  // --- Tela de Detalhes da Coleção ---
+  Widget _buildColecaoDetail({required bool isCartas}) { // Corrigido nome conforme seu switch interno
+    return _buildColecaoDetalhe(isCartas: isCartas);
+  }
+
   Widget _buildColecaoDetalhe({required bool isCartas}) {
     return Column(
       children: [
-        // Cabeçalho com botão de Voltar
         Row(
           children: [
             IconButton(
@@ -374,12 +411,11 @@ class _DeckViewState extends State<DeckView> {
                 ),
               ),
             ),
-            const SizedBox(width: 48), // Espaço vazio para manter o texto centralizado
+            const SizedBox(width: 48), 
           ],
         ),
         const SizedBox(height: 16),
 
-        // Mostra o Grid de Cartas ou o Grid de Itens Personalizáveis
         isCartas
             ? CardGridWidget(
                 cards: controller.playerCards,
@@ -390,7 +426,6 @@ class _DeckViewState extends State<DeckView> {
     );
   }
 
-  // --- Grid específico para bordas, arenas, etc ---
   Widget _buildGridPersonalizaveis() {
     return GridView.builder(
       shrinkWrap: true,
@@ -406,19 +441,66 @@ class _DeckViewState extends State<DeckView> {
         return ColectionItemWidget(
           titulo: 'Item ${index + 1}',
           icon: Icons.star,
-          onTap: () {
-            // Ação ao equipar/visualizar uma arena ou borda
-          },
+          onTap: () {},
         );
       },
     );
   }
 
-  // Função auxiliar para navegar internamente na aba de coleções
   void _abrirDetalhe(ColecaoState novoEstado, String titulo) {
     setState(() {
       _colecaoState = novoEstado;
       _detalheTitulo = titulo;
     });
+  }
+}
+
+class LockedCardWidget extends StatelessWidget {
+  final Widget cardWidget;
+  final double scale;
+
+  const LockedCardWidget({
+    super.key,
+    required this.cardWidget,
+    this.scale = 1.0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Transform.scale(
+      scale: scale,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.85),
+              BlendMode.srcATop,
+            ),
+            child: cardWidget,
+          ),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A1A).withOpacity(0.8),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white24, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.6),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                )
+              ]
+            ),
+            child: const Icon(
+              Icons.lock,
+              color: Colors.amber,
+              size: 28,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
