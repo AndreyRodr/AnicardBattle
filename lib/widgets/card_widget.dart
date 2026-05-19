@@ -50,7 +50,8 @@ class CardWidget extends StatelessWidget {
         child: Image.asset(
           'assets/images/AniCard Icon.png', 
           fit: BoxFit.contain,
-          width: 60 * scale,
+          height: double.infinity,
+          width: double.infinity,
         ),
       ),
     );
