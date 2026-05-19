@@ -30,8 +30,8 @@ class AuthService {
         
         // Vamos dar 3 cartas iniciais para o jogador (usando os IDs do seu cards.json)
         // Você pode mudar esses números para os IDs das cartas "padrão" do seu jogo
-        'cartasEquipadas': [1, 2, 3, 4, 5, 6, 7, 8, 9], 
-        'inventario': [5, 6, 7],
+        'cartasEquipadas': [1, 2, 3, 4, 5, 12, 7, 8, 9], 
+        'inventario': [10, 11],
         
         'criadoEm': FieldValue.serverTimestamp(), // Salva a data e hora do registro
       });

@@ -1,3 +1,4 @@
+import 'package:anicard/screens/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
@@ -18,7 +19,6 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Carrega o banco de dados simulado ANTES de desenhar a tela
   try {
     await CardCatalog.load();
     print("Catálogo de cartas carregado com sucesso!");
@@ -26,10 +26,9 @@ Future<void> main() async {
     print("Erro ao carregar o catálogo de cartas: $e");
   }
 
-  // Roda o app embrulhado no DevicePreview novamente
   runApp(
     DevicePreview(
-      enabled: true, // Mantenha true para ver o celular na tela
+      enabled: true, 
       builder: (context) => const MyApp(),
     ),
   );
@@ -64,7 +63,7 @@ class MyApp extends StatelessWidget {
             return const AniCardScreen();
           }
           // Se não estiver logado, vai para a tela de Login
-          return const LoginScreen();
+          return const SplashScreen();
         },
       ),
     );
