@@ -73,7 +73,8 @@ class _OpenPackViewState extends State<OpenPackView> {
     });
   }
 
-  Future<void> _abrirPacote(int pacotesPossuidos, List<dynamic> inventarioAtual) async {
+  // 🌟 FUNÇÃO ATUALIZADA: Puxa também a lista de cartas equipadas do Firestore
+  Future<void> _abrirPacote(int pacotesPossuidos, List<dynamic> inventarioAtual, List<dynamic> cartasEquipadasAtual) async {
     if (pacotesPossuidos < 1) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Você não tem pacotes suficientes! Compre na loja.'), backgroundColor: Colors.red),
@@ -99,23 +100,28 @@ class _OpenPackViewState extends State<OpenPackView> {
       List<bool> statusRepetidas = [];
       List<int> idsParaInventario = [];
 
+      // Mapeia todas as listas do usuário para String para evitar bugs de tipos no Firestore
+      List<String> inventarioString = inventarioAtual.map((id) => id.toString()).toList();
+      List<String> equipadasString = cartasEquipadasAtual.map((id) => id.toString()).toList();
+
       for (int i = 0; i < 3; i++) {
         CardModel carta = cartasDisponiveis[random.nextInt(cartasDisponiveis.length)];
         cartasSorteadas.add(carta);
 
-        List<String> inventarioString = inventarioAtual.map((id) => id.toString()).toList();
         List<String> temporariaString = idsParaInventario.map((id) => id.toString()).toList();
 
+        // 🌟 CORREÇÃO AQUI: Agora a carta conta como repetida se estiver no inventário, na lista temporária do pack OU já equipada no deck!
         bool ehRepetida = inventarioString.contains(carta.id.toString()) || 
+                          equipadasString.contains(carta.id.toString()) ||
                           temporariaString.contains(carta.id.toString());
         
         statusRepetidas.add(ehRepetida);
         idsParaInventario.add(carta.id);
 
-        print("🔍 Sorteio Gacha - Carta: ${carta.name} (ID: ${carta.id}) | Repetida? $ehRepetida");
+        print("🔍 Sorteio Gacha - Carta: ${carta.name} (ID: ${carta.id}) | No Deck? ${equipadasString.contains(carta.id.toString())} | Repetida? $ehRepetida");
       }
 
-      // Consome o pacote e adiciona os animais. Zero moedas por enquanto.
+      // Consome o pacote e adiciona os animais no array do banco
       await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
         'pacotes.$currentPackId': FieldValue.increment(-1),
         'inventario': FieldValue.arrayUnion(idsParaInventario),
@@ -247,6 +253,7 @@ class _OpenPackViewState extends State<OpenPackView> {
       builder: (context, snapshot) {
         int pacotesPossuidos = 0;
         List<dynamic> inventarioAtual = [];
+        List<dynamic> cartasEquipadasAtual = [];
         
         if (snapshot.hasData && snapshot.data!.exists) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -254,6 +261,7 @@ class _OpenPackViewState extends State<OpenPackView> {
           
           pacotesPossuidos = pacotesMap[currentPack.id] ?? 0;
           inventarioAtual = data['inventario'] ?? [];
+          cartasEquipadasAtual = data['cartasEquipadas'] ?? []; // 🌟 Puxa o array do Deck real do banco
         }
 
         return Scaffold(
@@ -282,8 +290,8 @@ class _OpenPackViewState extends State<OpenPackView> {
                   ),
                   const SizedBox(height: 48),
                   _buildActionButton(
-                    title: _isOpening ? 'SORTEANDO...' : 'ABRIR PACK (3 CARTAS)',
-                    onTap: _isOpening ? () {} : () => _abrirPacote(pacotesPossuidos, inventarioAtual),
+                    title: _isOpening ? 'SORTEANDO...' : 'ABRIR PAC (3 CARTAS)',
+                    onTap: _isOpening ? () {} : () => _abrirPacote(pacotesPossuidos, inventarioAtual, cartasEquipadasAtual),
                   ),
                 ],
               ),
@@ -337,14 +345,12 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
     });
   }
 
-  // 🌟 FUNÇÃO ATUALIZADA: Injeta as 50 moedas imediatamente ao clicar!
   Future<void> _converterRepetidaEAvancar() async {
     _flipController.toggleCard(); 
     final user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
       try {
-        // Atualiza as moedas instantaneamente no Firebase
         await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
           'moedas': FieldValue.increment(50),
         });
@@ -353,7 +359,6 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
       }
     }
 
-    // Gerencia a transição visual paralela
     Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         setState(() {
@@ -362,7 +367,7 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
       }
     });
 
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 300), () {
       if (mounted) {
         if (_cardIndex < 2) {
           _avancarOuFechar();
@@ -438,13 +443,7 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
                   label: const Text("REPETIDA! REIVINDICAR +50 MOEDAS"),
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
                 )
-              else if (_cardIndex < 2)
-                ElevatedButton.icon(
-                  onPressed: _avancarOuFechar,
-                  icon: const Icon(Icons.navigate_next),
-                  label: const Text("PRÓXIMA CARTA"),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green[700], foregroundColor: Colors.white),
-                )
+              
               else
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
