@@ -383,9 +383,6 @@ class _DeckViewState extends State<DeckView> {
     );
   }
 
-  Widget _buildColecaoDetail({required bool isCartas}) { // Corrigido nome conforme seu switch interno
-    return _buildColecaoDetalhe(isCartas: isCartas);
-  }
 
   Widget _buildColecaoDetalhe({required bool isCartas}) {
     return Column(
