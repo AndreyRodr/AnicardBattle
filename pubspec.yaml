@@ -72,6 +72,7 @@ flutter:
     - assets/images/oferta.jpeg
     - assets/images/cards/
     - assets/data/
+    - assets/images/packs/
     - assets/data/cards.json
     - .env
   # An image asset can refer to one or more resolution-specific "variants", see

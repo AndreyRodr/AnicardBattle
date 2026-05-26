@@ -175,7 +175,7 @@ class CoinOfferWidget extends StatelessWidget {
   }
 }
 
-// Card individual dos pacotes (Ajustado para ocupar a largura total do container do carrossel)
+// Card individual dos pacotes (Ajustado para cobrir a área inteira com a imagem)
 class PackOfferWidget extends StatelessWidget {
   final String packName;
   final String packPrice;
@@ -201,8 +201,8 @@ class PackOfferWidget extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          width: double.infinity, // Ocupa o tamanho do slide do PageView
-          padding: const EdgeInsets.all(12.0), // Ajustado padding interno para o formato vertical
+          width: double.infinity, // Ocupa o tamanho do slide do PageView (200x330)
+          padding: const EdgeInsets.all(12.0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -211,13 +211,17 @@ class PackOfferWidget extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   decoration: BoxDecoration(
-                    color: const Color(0x1AFFFFFF), 
+                    // 🌟 Se tiver imagem, o fundo cinza fica transparente para não vazar nas bordas
+                    color: imagePath != null ? Colors.transparent : const Color(0x1AFFFFFF), 
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: imagePath != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(imagePath!, fit: BoxFit.contain),
+                          child: Image.asset(
+                            imagePath!, 
+                            fit: BoxFit.fill, // 🌟 Alterado de contain para fill para cobrir 100% da área cinza
+                          ),
                         )
                       : Icon(fallbackIcon, color: Colors.greenAccent, size: 54),
                 ),
@@ -231,7 +235,7 @@ class PackOfferWidget extends StatelessWidget {
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w900,
-                  fontSize: 14, // Leve redução para garantir que caiba em cards estreitos
+                  fontSize: 14,
                 ),
               ),
               const SizedBox(height: 8),
@@ -406,10 +410,8 @@ class _StoreViewState extends State<StoreView> {
           ),
           const SizedBox(height: 16),
 
-          // Container que segura o PageView com tamanho fixo ideal de Booster
           Center(
             child: SizedBox(
-              // 🌟 PROPORÇÃO AJUSTADA: Deixando o Booster mais comprido e vertical
               width: 200, 
               height: 330, 
               child: PageView(
@@ -421,21 +423,25 @@ class _StoreViewState extends State<StoreView> {
                   });
                 },
                 children: [
+                  // 🌟 ADICIONADO: 'imagePath' mapeado com a pasta correta das artes dos pacotes
                   PackOfferWidget(
                     packName: "Floresta Amazônica",
                     packPrice: "100",
+                    imagePath: "assets/images/packs/amazon_pack.png",
                     fallbackIcon: Icons.forest,
                     onTap: () => _comprarPacoteGenerico(context, 100, 'floresta_amazonica', 1),
                   ),
                   PackOfferWidget(
                     packName: "Savana Africana",
                     packPrice: "100",
+                    imagePath: "assets/images/packs/savanna_pack.png",
                     fallbackIcon: Icons.wb_sunny,
                     onTap: () => _comprarPacoteGenerico(context, 100, 'savana_africana', 1),
                   ),
                   PackOfferWidget(
                     packName: "Tundra Polar",
                     packPrice: "100",
+                    imagePath: "assets/images/packs/tundra_pack.png",
                     fallbackIcon: Icons.ac_unit,
                     onTap: () => _comprarPacoteGenerico(context, 100, 'tundra_polar', 1),
                   ),

@@ -7,15 +7,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flip_card/flip_card.dart';
 import 'package:flip_card/flip_card_controller.dart';
 import '../models/card_model.dart';
+import '../models/pack_model.dart';
 import '../widgets/card_widget.dart';
-
-class PackModel {
-  final String id; 
-  final String name;
-  final String imagePath;
-
-  PackModel({required this.id, required this.name, required this.imagePath});
-}
+import '../widgets/pack_display_widget.dart';
+import '../widgets/pack_explosion_widget.dart';
 
 class OpenPackView extends StatefulWidget {
   const OpenPackView({super.key});
@@ -33,7 +28,11 @@ class _OpenPackViewState extends State<OpenPackView> {
 
   int _currentIndex = 0;
   bool _isOpening = false;
+  bool _skipAnimation = false; 
   List<CardModel> _allCatalogCards = [];
+
+  List<CardModel> _cartasSorteadasTemp = [];
+  List<bool> _statusRepetidasTemp = [];
 
   @override
   void initState() {
@@ -49,31 +48,24 @@ class _OpenPackViewState extends State<OpenPackView> {
         _allCatalogCards = (data['cards'] as List).map((c) => CardModel.fromJson(c)).toList();
       });
     } catch (e) {
-      print("Erro ao carregar catálogo para a loja: $e");
+      print("Erro ao carregar catálogo: $e");
     }
   }
 
   void _nextPack() {
+    if (_isOpening) return;
     setState(() {
-      if (_currentIndex < _availablePacks.length - 1) {
-        _currentIndex++;
-      } else {
-        _currentIndex = 0;
-      }
+      _currentIndex = (_currentIndex < _availablePacks.length - 1) ? _currentIndex + 1 : 0;
     });
   }
 
   void _previousPack() {
+    if (_isOpening) return;
     setState(() {
-      if (_currentIndex > 0) {
-        _currentIndex--;
-      } else {
-        _currentIndex = _availablePacks.length - 1;
-      }
+      _currentIndex = (_currentIndex > 0) ? _currentIndex - 1 : _availablePacks.length - 1;
     });
   }
 
-  // 🌟 FUNÇÃO ATUALIZADA: Puxa também a lista de cartas equipadas do Firestore
   Future<void> _abrirPacote(int pacotesPossuidos, List<dynamic> inventarioAtual, List<dynamic> cartasEquipadasAtual) async {
     if (pacotesPossuidos < 1) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -84,7 +76,11 @@ class _OpenPackViewState extends State<OpenPackView> {
 
     if (_allCatalogCards.isEmpty) return;
 
-    setState(() => _isOpening = true);
+    setState(() {
+      _isOpening = true;
+      _skipAnimation = false; 
+    });
+    
     final user = FirebaseAuth.instance.currentUser;
     final currentPackId = _availablePacks[_currentIndex].id;
 
@@ -100,7 +96,6 @@ class _OpenPackViewState extends State<OpenPackView> {
       List<bool> statusRepetidas = [];
       List<int> idsParaInventario = [];
 
-      // Mapeia todas as listas do usuário para String para evitar bugs de tipos no Firestore
       List<String> inventarioString = inventarioAtual.map((id) => id.toString()).toList();
       List<String> equipadasString = cartasEquipadasAtual.map((id) => id.toString()).toList();
 
@@ -110,136 +105,45 @@ class _OpenPackViewState extends State<OpenPackView> {
 
         List<String> temporariaString = idsParaInventario.map((id) => id.toString()).toList();
 
-        // 🌟 CORREÇÃO AQUI: Agora a carta conta como repetida se estiver no inventário, na lista temporária do pack OU já equipada no deck!
         bool ehRepetida = inventarioString.contains(carta.id.toString()) || 
                           equipadasString.contains(carta.id.toString()) ||
                           temporariaString.contains(carta.id.toString());
         
         statusRepetidas.add(ehRepetida);
         idsParaInventario.add(carta.id);
-
-        print("🔍 Sorteio Gacha - Carta: ${carta.name} (ID: ${carta.id}) | No Deck? ${equipadasString.contains(carta.id.toString())} | Repetida? $ehRepetida");
       }
 
-      // Consome o pacote e adiciona os animais no array do banco
+      _cartasSorteadasTemp = cartasSorteadas;
+      _statusRepetidasTemp = statusRepetidas;
+
       await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
         'pacotes.$currentPackId': FieldValue.increment(-1),
         'inventario': FieldValue.arrayUnion(idsParaInventario),
       });
 
-      if (!mounted) return;
-      _mostrarAnimacaoRevelacao(cartasSorteadas, statusRepetidas);
-
     } catch (e) {
+      setState(() => _isOpening = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao abrir pacote: $e'), backgroundColor: Colors.red),
       );
-    } finally {
-      setState(() => _isOpening = false);
     }
+  }
+
+  void _finalizarAbertura() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _isOpening = false;
+      });
+      _mostrarAnimacaoRevelacao(_cartasSorteadasTemp, _statusRepetidasTemp);
+    });
   }
 
   void _mostrarAnimacaoRevelacao(List<CardModel> cartas, List<bool> repetidas) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
-        return _PackOpeningDialog(
-          cartas: cartas,
-          repetidas: repetidas,
-        );
-      },
-    );
-  }
-
-  Widget _buildArrowButton({required IconData icon, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 50,
-        height: 50,
-        decoration: BoxDecoration(
-          color: const Color(0xFF1B3320),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.green[800]!, width: 2),
-        ),
-        child: Icon(icon, color: Colors.white70, size: 30),
-      ),
-    );
-  }
-
-  Widget _buildPackDisplay(PackModel pack, int quantity) {
-    return SizedBox(
-      width: 220, 
-      height: 320,
-      child: Stack(
-        clipBehavior: Clip.none, 
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(16),
-              color: const Color(0xFF1B3320),
-              border: Border.all(color: Colors.green[800]!, width: 3),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.auto_awesome, color: Colors.amber, size: 48),
-                  const SizedBox(height: 12),
-                  Text(
-                    pack.name, 
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)
-                  ),
-                ],
-              ), 
-            ),
-          ),
-          Positioned(
-            bottom: -15,
-            right: -15,
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.amber,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4)),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  '$quantity',
-                  style: const TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({required String title, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 240,
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1B3320),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.green[800]!, width: 2),
-        ),
-        child: Text(
-          title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2),
-        ),
-      ),
+      builder: (context) => _PackOpeningDialog(cartas: cartas, repetidas: repetidas),
     );
   }
 
@@ -261,39 +165,88 @@ class _OpenPackViewState extends State<OpenPackView> {
           
           pacotesPossuidos = pacotesMap[currentPack.id] ?? 0;
           inventarioAtual = data['inventario'] ?? [];
-          cartasEquipadasAtual = data['cartasEquipadas'] ?? []; // 🌟 Puxa o array do Deck real do banco
+          cartasEquipadasAtual = data['cartasEquipadas'] ?? []; 
         }
 
         return Scaffold(
           backgroundColor: Colors.transparent,
-          body: Center(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildArrowButton(
-                          icon: Icons.arrow_back,
-                          onTap: _isOpening ? () {} : _previousPack,
-                        ),
-                        _buildPackDisplay(currentPack, pacotesPossuidos),
-                        _buildArrowButton(
-                          icon: Icons.arrow_forward,
-                          onTap: _isOpening ? () {} : _nextPack,
-                        ),
-                      ],
+          body: GestureDetector(
+            onTap: _isOpening ? () => setState(() => _skipAnimation = true) : null,
+            behavior: HitTestBehavior.opaque,
+            child: Center(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (!_isOpening) ...[
+                            GestureDetector(
+                              onTap: _previousPack,
+                              child: Container(
+                                width: 50, height: 50,
+                                decoration: BoxDecoration(color: const Color(0xFF1B3320), shape: BoxShape.circle, border: Border.all(color: Colors.green[800]!, width: 2)),
+                                child: const Icon(Icons.arrow_back, color: Colors.white70, size: 30),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                          ],
+                          
+                          Flexible(
+                            child: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 300),
+                              child: _isOpening
+                                  ? PackExplosionWidget(
+                                      key: ValueKey('explosion_${currentPack.id}'),
+                                      imagePath: currentPack.imagePath,
+                                      skipTriggered: _skipAnimation, 
+                                      onExplosionComplete: _finalizarAbertura,
+                                    )
+                                  : PackDisplayWidget(
+                                      key: ValueKey('display_${currentPack.id}'),
+                                      pack: currentPack, 
+                                      quantity: pacotesPossuidos,
+                                    ),
+                            ),
+                          ),
+                          
+                          if (!_isOpening) ...[
+                            const SizedBox(width: 12),
+                            GestureDetector(
+                              onTap: _nextPack,
+                              child: Container(
+                                width: 50, height: 50,
+                                decoration: BoxDecoration(color: const Color(0xFF1B3320), shape: BoxShape.circle, border: Border.all(color: Colors.green[800]!, width: 2)),
+                                child: const Icon(Icons.arrow_forward, color: Colors.white70, size: 30),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 48),
-                  _buildActionButton(
-                    title: _isOpening ? 'SORTEANDO...' : 'ABRIR PAC (3 CARTAS)',
-                    onTap: _isOpening ? () {} : () => _abrirPacote(pacotesPossuidos, inventarioAtual, cartasEquipadasAtual),
-                  ),
-                ],
+                    const SizedBox(height: 40),
+                    GestureDetector(
+                      onTap: _isOpening ? () => setState(() => _skipAnimation = true) : () => _abrirPacote(pacotesPossuidos, inventarioAtual, cartasEquipadasAtual),
+                      child: Container(
+                        width: 240,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1B3320),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.green[800]!, width: 2),
+                        ),
+                        child: Text(
+                          _isOpening ? 'TOCAR PARA PULAR' : 'ABRIR PACOTE',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -306,12 +259,7 @@ class _OpenPackViewState extends State<OpenPackView> {
 class _PackOpeningDialog extends StatefulWidget {
   final List<CardModel> cartas;
   final List<bool> repetidas;
-
-  const _PackOpeningDialog({
-    required this.cartas,
-    required this.repetidas,
-  });
-
+  const _PackOpeningDialog({required this.cartas, required this.repetidas});
   @override
   State<_PackOpeningDialog> createState() => _PackOpeningDialogState();
 }
@@ -321,58 +269,81 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
   final FlipCardController _flipController = FlipCardController();
   bool _mostrarMoeda = false;
   bool _isFront = true; 
+  bool _animandoTransicao = false; 
 
   void _avancarOuFechar() {
     if (_cardIndex < 2) {
-      setState(() {
-        _cardIndex++;
-        _mostrarMoeda = false;
+      setState(() { 
+        _cardIndex++; 
+        _mostrarMoeda = false; 
         _isFront = true; 
+        _animandoTransicao = false;
       });
     }
   }
 
   void _fecharPacoteNaUltimaCarta() {
-    if (_cardIndex == 2 && !_isFront) {
-      Navigator.of(context).pop();
+    if (_cardIndex == 2 && !_isFront) Navigator.of(context).pop();
+  }
+
+  // 🌟 FUNÇÃO CENTRAL DE INTERAÇÃO NA TELA INTEIRA
+  void _lidarComToqueNaTela() {
+    if (_animandoTransicao) return;
+
+    if (_isFront) {
+      // Se a carta está fechada, vira para revelar o animal
+      _revelarCarta();
+    } else if (widget.repetidas[_cardIndex] && !_mostrarMoeda) {
+      // Se a carta está aberta e é repetida, converte em moedas
+      _converterRepetidaEAvancar();
+    } else {
+      // Se for a última carta concluída, fecha o dialog
+      _fecharPacoteNaUltimaCarta();
     }
   }
 
   void _revelarCarta() {
+    if (_animandoTransicao) return;
+    
     _flipController.toggleCard();
-    setState(() {
-      _isFront = false; 
+    
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (!mounted) return;
+      setState(() => _isFront = false);
+      
+      final ehRepetida = widget.repetidas[_cardIndex];
+      if (!ehRepetida && _cardIndex < 2) {
+        setState(() => _animandoTransicao = true);
+        Future.delayed(const Duration(milliseconds: 1000), () {
+          if (mounted) _avancarOuFechar();
+        });
+      }
     });
   }
 
   Future<void> _converterRepetidaEAvancar() async {
-    _flipController.toggleCard(); 
-    final user = FirebaseAuth.instance.currentUser;
-
-    if (user != null) {
-      try {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-          'moedas': FieldValue.increment(50),
-        });
-      } catch (e) {
-        print("Erro ao injetar moedas da repetida: $e");
-      }
-    }
-
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (mounted) {
-        setState(() {
-          _mostrarMoeda = true;
-        });
-      }
+    if (_animandoTransicao) return;
+    
+    setState(() {
+      _animandoTransicao = true;
+      _mostrarMoeda = true; 
     });
 
-    Future.delayed(const Duration(milliseconds: 300), () {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'moedas': FieldValue.increment(50)});
+      } catch (e) { print("Erro ao atualizar moedas: $e"); }
+    }
+    
+    Future.delayed(const Duration(milliseconds: 2000), () {
       if (mounted) {
         if (_cardIndex < 2) {
-          _avancarOuFechar();
+          _avancarOuFechar(); 
         } else {
-          setState(() {}); 
+          setState(() {
+            _animandoTransicao = false; 
+          });
         }
       }
     });
@@ -382,81 +353,64 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
   Widget build(BuildContext context) {
     final cartaAtual = widget.cartas[_cardIndex];
     final ehRepetida = widget.repetidas[_cardIndex];
-
+    
     return GestureDetector(
-      onTap: _cardIndex == 2 && !_isFront 
-          ? _fecharPacoteNaUltimaCarta 
-          : null,
+      // 🌟 MUDANÇA: Agora o detector de gestos chama a função central mapeando cliques em qualquer parte vazia da tela
+      onTap: _lidarComToqueNaTela,
       behavior: HitTestBehavior.opaque,
-      
       child: Material(
         color: Colors.transparent, 
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(
-                "CARTA ${_cardIndex + 1} DE 3",
-                style: const TextStyle(
-                  color: Colors.white, 
-                  fontSize: 18, 
-                  fontWeight: FontWeight.bold, 
-                  letterSpacing: 1.5,
-                  shadows: [Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(2, 2))]
-                ),
-              ),
+              Text("CARTA ${_cardIndex + 1} DE 3", style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5, shadows: [Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(2, 2))])),
               const SizedBox(height: 24),
-
-              SizedBox(
-                width: 250,
-                height: 350,
-                child: FlipCard(
-                  key: ValueKey(_cardIndex), 
-                  speed: 600,
-                  direction: FlipDirection.VERTICAL,
-                  controller: _flipController,
-                  flipOnTouch: false,
-                  front: CardWidget(
-                    card: cartaAtual,
-                    isFacedown: true,
-                    scale: 1.2,
+              
+              // O Card em si também aceita cliques para rodar a lógica sem travar
+              GestureDetector(
+                onTap: _lidarComToqueNaTela,
+                child: SizedBox(
+                  width: 250, height: 350,
+                  child: FlipCard(
+                    key: ValueKey(_cardIndex), 
+                    speed: 600,
+                    direction: FlipDirection.VERTICAL,
+                    controller: _flipController,
+                    flipOnTouch: false,
+                    front: CardWidget(card: cartaAtual, isFacedown: true, scale: 1.2),
+                    back: _mostrarMoeda ? _buildCoinAnimation() : CardWidget(card: cartaAtual, isFacedown: false, scale: 1.2),
                   ),
-                  back: _mostrarMoeda 
-                      ? _buildCoinAnimation() 
-                      : CardWidget(card: cartaAtual, isFacedown: false, scale: 1.2),
                 ),
               ),
-              
               const SizedBox(height: 32),
-
+              
               if (_isFront)
                 ElevatedButton.icon(
-                  onPressed: _revelarCarta,
-                  icon: const Icon(Icons.touch_app),
-                  label: const Text("REVELAR ANIMAL"),
+                  onPressed: _revelarCarta, 
+                  icon: const Icon(Icons.touch_app), 
+                  label: const Text("REVELAR ANIMAL"), 
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.amber, foregroundColor: Colors.black),
                 )
               else if (ehRepetida && !_mostrarMoeda)
                 ElevatedButton.icon(
-                  onPressed: _converterRepetidaEAvancar,
-                  icon: const Icon(Icons.cached),
-                  label: const Text("REPETIDA! REIVINDICAR +50 MOEDAS"),
+                  onPressed: _converterRepetidaEAvancar, 
+                  icon: const Icon(Icons.cached), 
+                  label: const Text("REPETIDA! REIVINDICAR +50 MOEDAS"), 
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent, foregroundColor: Colors.white),
                 )
-              
+              else if (_cardIndex < 2)
+                const SizedBox(height: 40)
               else
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.touch_app, color: Colors.amber, size: 20),
-                      const SizedBox(width: 8),
-                      const Text(
-                        "TOQUE NA TELA PARA CONCLUIR PACOTE",
-                        style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold),
-                      ),
+                      Icon(Icons.touch_app, color: Colors.amber, size: 20),
+                      SizedBox(width: 8),
+                      Text("TOQUE NA TELA PARA CONCLUIR PACOTE", style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -469,28 +423,18 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
 
   Widget _buildCoinAnimation() {
     return Container(
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.amber, width: 3),
-      ),
+      decoration: BoxDecoration(color: const Color(0xFF1A1A1A), borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.amber, width: 3)),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.monetization_on, color: Colors.amber, size: 100),
           const SizedBox(height: 16),
-          const Text(
-            "CONVERTIDA!",
-            style: TextStyle(color: Colors.amber, fontSize: 24, fontWeight: FontWeight.bold),
-          ),
+          const Text("CONVERTIDA!", style: TextStyle(color: Colors.amber, fontSize: 24, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(20)),
-            child: const Text(
-              "+50 MOEDAS",
-              style: TextStyle(color: Colors.amber, fontSize: 18, fontWeight: FontWeight.bold),
-            ),
+            child: const Text("+50 MOEDAS", style: TextStyle(color: Colors.amber, fontSize: 18, fontWeight: FontWeight.bold)),
           )
         ],
       ),
