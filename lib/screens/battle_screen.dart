@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math' as math;
 
-// 👇 Importe seus novos arquivos aqui
 import '../models/card_model.dart';
 import '../widgets/card_widget.dart';
 import '../services/battle_service.dart';
@@ -20,11 +19,10 @@ class _BattleScreenState extends State<BattleScreen> {
   final Color _tableColor = const Color(0xFF6B4E31);
   final Color _dividerColor = Colors.black87;
 
-  // --- Controle de Seleção da Mão ---
-  int? _selectedCardIndex; // Guarda qual carta o jogador tocou
+  int? _selectedCardIndex; 
 
   final String? _currentUid = FirebaseAuth.instance.currentUser?.uid;
-  final BattleService _battleService = BattleService(); // Instância do novo serviço
+  final BattleService _battleService = BattleService(); 
 
   bool _isCarregandoPartida = true;
   int _playerLives = 5;
@@ -43,7 +41,14 @@ class _BattleScreenState extends State<BattleScreen> {
   String? _resultadoRoundTexto;
   Color _resultadoRoundCor = Colors.transparent;
 
-  final List<String> _atributosPossiveis = ['instintoAssassino', 'forca', 'peso', 'inteligencia', 'agilidade', 'media'];
+  final List<String> _atributosPossiveis = [
+    'instintoAssassino',
+    'forca',
+    'peso',
+    'inteligencia',
+    'agilidade',
+    'media',
+  ];
   String _atributoSorteado = 'forca';
 
   @override
@@ -56,8 +61,7 @@ class _BattleScreenState extends State<BattleScreen> {
     if (_currentUid == null) return;
 
     try {
-      // Uso do serviço abstraído
-      List<CardModel> cartasJogador = await _battleService.buscarCartasEquipadas(_currentUid);
+      List<CardModel> cartasJogador = await _battleService.buscarCartasEquipadas(_currentUid!);
       List<CardModel> cartasOponente = await _battleService.buscarCartasEquipadas("d9e8ZKsmAYM5EqNPgWMFTxMeEBY2");
 
       setState(() {
@@ -77,9 +81,8 @@ class _BattleScreenState extends State<BattleScreen> {
 
   Future<void> _resolverRodada() async {
     await Future.delayed(const Duration(seconds: 2));
-    if (!mounted) return; 
+    if (!mounted) return;
 
-    // Uso do helper matemático abstraído
     int valorJogador = BattleHelpers.obterValorAtributo(_playerCurrentCard!, _atributoSorteado);
     int valorOponente = BattleHelpers.obterValorAtributo(_opponentCurrentCard!, _atributoSorteado);
 
@@ -106,22 +109,22 @@ class _BattleScreenState extends State<BattleScreen> {
 
       if (_playerLives <= 0 || _opponentLives <= 0) {
         _finalizarPartida();
-        return; 
+        return;
       }
 
       _playerDiscard.add(_playerCurrentCard!);
       _playerCurrentCard = null;
       _opponentDiscard.add(_opponentCurrentCard!);
-      _opponentCurrentCard = null; 
+      _opponentCurrentCard = null;
 
       if (_playerDeck.isNotEmpty) _playerHand.add(_playerDeck.removeAt(0));
       if (_opponentDeck.isNotEmpty) _opponentHand.add(_opponentDeck.removeAt(0));
 
       if (_playerHand.isEmpty || _opponentHand.isEmpty) {
         _finalizarPartida();
-        return; // Interrompe para não sortear mais nada
+        return; 
       }
-      
+
       _atributoSorteado = (_atributosPossiveis.toList()..shuffle()).first;
     });
   }
@@ -130,7 +133,6 @@ class _BattleScreenState extends State<BattleScreen> {
     String tituloResultado;
     Color corResultado;
 
-    // Calcula quem venceu e define as cores
     if (_playerLives > _opponentLives) {
       tituloResultado = "VITÓRIA!";
       corResultado = Colors.greenAccent;
@@ -142,10 +144,9 @@ class _BattleScreenState extends State<BattleScreen> {
       corResultado = Colors.grey;
     }
 
-    // Exibe o modal na tela de forma que o usuário não consiga fechar clicando fora (barrierDismissible: false)
     showDialog(
       context: context,
-      barrierDismissible: false, 
+      barrierDismissible: false,
       builder: (context) {
         return GameOverDialog(
           titulo: tituloResultado,
@@ -157,10 +158,37 @@ class _BattleScreenState extends State<BattleScreen> {
     );
   }
 
+  void _confirmarFuga() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF351F14),
+          title: const Text('Abandonar Batalha', style: TextStyle(color: Colors.white)),
+          content: const Text(
+            'Se você sair agora, isso contará como uma DERROTA. Tem certeza que deseja fugir?',
+            style: TextStyle(color: Colors.white70),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context), 
+              child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+              onPressed: () {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              },
+              child: const Text('Desistir', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _selecionarCarta(int index) {
     setState(() {
-      // Se clicar na mesma carta que já está selecionada, ele desmarca. 
-      // Se clicar em outra, ele muda a seleção.
       _selectedCardIndex = (_selectedCardIndex == index) ? null : index;
     });
   }
@@ -173,23 +201,48 @@ class _BattleScreenState extends State<BattleScreen> {
 
   void _jogarCartaSelecionada() {
     if (_selectedCardIndex == null) return;
-    
-    int cardIndex = _selectedCardIndex!; // Salva o index antes de limpar
-    
+
+    int cardIndex = _selectedCardIndex!; 
+
     setState(() {
-      _selectedCardIndex = null; // Limpa a seleção da tela
-      
-      // Move a carta da mão para o centro da mesa
+      _selectedCardIndex = null; 
       _playerCurrentCard = _playerHand.removeAt(cardIndex);
-      
-      // O Oponente joga a carta dele
+
       if (_opponentHand.isNotEmpty) {
         _opponentCurrentCard = _opponentHand.removeAt(0);
       }
     });
-
-    // Inicia o ciclo de combate
     _resolverRodada();
+  }
+
+  // --- Método Auxiliar para desenhar a carta (Resolve a sobreposição) ---
+  Widget _buildHandCard(int index, bool showOnlySelected) {
+    bool isSelected = _selectedCardIndex == index;
+    // Lógica da sobreposição: Cria "fantasmas" invisíveis para manter o layout perfeito
+    bool isVisible = showOnlySelected ? isSelected : !isSelected;
+
+    return Align(
+      widthFactor: 0.7,
+      child: Visibility(
+        visible: isVisible,
+        maintainSize: true, // Mantém o espaço exato da carta
+        maintainAnimation: true,
+        maintainState: true,
+        child: GestureDetector(
+          onTap: () => _selecionarCarta(index),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutBack,
+            transform: Matrix4.identity()..translate(0.0, isSelected ? -50.0 : 0.0),
+            child: CardWidget(
+              card: _playerHand[index],
+              scale: isSelected ? 0.9 : 0.7,
+              isFacedown: false,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -197,128 +250,184 @@ class _BattleScreenState extends State<BattleScreen> {
     if (_isCarregandoPartida) {
       return Scaffold(
         backgroundColor: _tableColor,
-        body: const Center(child: CircularProgressIndicator(color: Colors.white)),
+        body: const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        ),
       );
     }
 
     return Scaffold(
-      backgroundColor: _tableColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Column(
-              children: [
-                // OPONENTE
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Positioned(bottom: 8, right: 16, child: LifeHearts(activeLives: _opponentLives)), // Uso do widget abstraído
-                      if (_opponentDiscard.isNotEmpty)
-                        Positioned(top: 16, left: 16, child: Transform.rotate(angle: math.pi, child: CardWidget(card: _opponentDiscard.last, scale: 0.4, isFacedown: false))),
-                      if (_opponentDeck.isNotEmpty)
-                        Positioned(top: 16, right: 16, child: Transform.rotate(angle: math.pi, child: CardWidget(card: _opponentDeck.first, scale: 0.4, isFacedown: true))),
-                      Positioned(
-                        top: -40, left: 0, right: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(_opponentHand.length, (index) {
-                            return Align(widthFactor: 0.7, child: Transform.rotate(angle: math.pi, child: CardWidget(card: _opponentHand[index], scale: 0.5, isFacedown: true)));
-                          }),
-                        ),
-                      ),
-                      if (_opponentCurrentCard != null)
-                        Align(alignment: const Alignment(0, 0.4), child: Transform.rotate(angle: math.pi, child: CardWidget(card: _opponentCurrentCard!, scale: 0.7, isFacedown: false))),
-                    ],
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/campoBatalha.png'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // 1. ATRIBUTO CENTRAL (Movido para o fundo do Stack para ser coberto pelas cartas)
+              Center(
+                child: Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: BattleHelpers.obterCorAtributo(_atributoSorteado),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.black87, width: 3),
+                  ),
+                  child: Icon(
+                    BattleHelpers.obterIconeAtributo(_atributoSorteado),
+                    size: 40,
+                    color: Colors.black54,
                   ),
                 ),
+              ),
 
-                Divider(height: 4, thickness: 4, color: _dividerColor),
-
-                // JOGADOR
-                Expanded(
-                  child: Stack(
-                    children: [
-                      Positioned(top: 8, left: 16, child: LifeHearts(activeLives: _playerLives)), // Uso do widget abstraído
-                      if (_playerCurrentCard != null)
-                        Align(alignment: const Alignment(0, -0.4), child: CardWidget(card: _playerCurrentCard!, scale: 0.4, isFacedown: false)),
-                      if (_playerDiscard.isNotEmpty)
-                        Positioned(bottom: 16, left: 16, child: CardWidget(card: _playerDiscard.last, scale: 0.4, isFacedown: false)),
-                      if (_playerDeck.isNotEmpty)
-                        Positioned(bottom: 16, right: 16, child: CardWidget(card: _playerDeck.first, scale: 0.4, isFacedown: true)),
-                      Positioned(
-                        bottom: -40, left: 0, right: 0,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(_playerHand.length, (index) {
-                            bool isSelected = _selectedCardIndex == index;
-                            return Align(
-                              widthFactor: 0.7,
-                              child: GestureDetector(
-                                onTap: () => _selecionarCarta(index),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 250),
-                                  curve: Curves.easeOutBack,
-                                  // Animação de subir
-                                  transform: Matrix4.identity()..translate(0.0, isSelected ? -50.0 : 0.0),
-                                  child: CardWidget(
-                                    card: _playerHand[index],
-                                    // Animação de crescer
-                                    scale: isSelected ? 1.15 : 0.7, 
-                                    isFacedown: false,
-                                  ),
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                if (_selectedCardIndex != null)
+              // 2. COLUNA PRINCIPAL (Mesa e Cartas)
+              Column(
+                children: [
+                  // OPONENTE
+                  Expanded(
+                    child: Stack(
+                      children: [
                         Positioned(
-                          bottom: 120, // Posiciona logo acima das cartas da mão
-                          left: 0,
-                          right: 0,
+                          bottom: 25, right: 16,
+                          child: LifeHearts(activeLives: _opponentLives),
+                        ),
+                        if (_opponentDiscard.isNotEmpty)
+                          Positioned(
+                            top: 175, left: 16,
+                            child: CardWidget(card: _opponentDiscard.last, scale: 0.4, isFacedown: false),
+                          ),
+                        if (_opponentDeck.isNotEmpty)
+                          Positioned(
+                            top: 175, right: 16,
+                            child: CardWidget(card: _opponentDeck.first, scale: 0.4, isFacedown: true),
+                          ),
+                        Positioned(
+                          top: 0, left: 0, right: 0,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            children: List.generate(_opponentHand.length, (index) {
+                              return Align(
+                                widthFactor: 0.7,
+                                child: CardWidget(card: _opponentHand[index], scale: 0.5, isFacedown: true),
+                              );
+                            }),
+                          ),
+                        ),
+                        if (_opponentCurrentCard != null)
+                          Align(
+                            alignment: const Alignment(0, 0.4),
+                            child: CardWidget(card: _opponentCurrentCard!, scale: 0.7, isFacedown: false),
+                          ),
+                      ],
+                    ),
+                  ),
+
+
+                  // JOGADOR
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          top: 25, left: 16,
+                          child: LifeHearts(activeLives: _playerLives),
+                        ),
+                        if (_playerCurrentCard != null)
+                          Align(
+                            alignment: const Alignment(0, -0.4),
+                            child: CardWidget(card: _playerCurrentCard!, scale: 0.7, isFacedown: false),
+                          ),
+                        if (_playerDiscard.isNotEmpty)
+                          Positioned(
+                            bottom: 175, left: 16,
+                            child: CardWidget(card: _playerDiscard.last, scale: 0.4, isFacedown: false),
+                          ),
+                        if (_playerDeck.isNotEmpty)
+                          Positioned(
+                            bottom: 175, right: 16,
+                            child: CardWidget(card: _playerDeck.first, scale: 0.4, isFacedown: true),
+                          ),
+                        
+                        // MÃO DO JOGADOR (Em Duas Camadas)
+                        Positioned(
+                          bottom: 0, left: 0, right: 0,
+                          child: Stack(
+                            alignment: Alignment.bottomCenter,
                             children: [
-                              // Botão de Cancelar (Vermelho)
-                              FloatingActionButton.extended(
-                                heroTag: 'btn_cancelar',
-                                backgroundColor: const Color(0xFF8B0000), // Vermelho escuro
-                                onPressed: _cancelarSelecao,
-                                label: const Text('Cancelar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                icon: const Icon(Icons.close, color: Colors.white),
+                              // Camada Base: Desenha as cartas não selecionadas
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(_playerHand.length, (index) => _buildHandCard(index, false)),
                               ),
-                              const SizedBox(width: 16),
-                              // Botão de Confirmar (Verde)
-                              FloatingActionButton.extended(
-                                heroTag: 'btn_jogar',
-                                backgroundColor: const Color(0xFF082611), // Verde escuro da sua paleta
-                                onPressed: _jogarCartaSelecionada,
-                                label: const Text('Jogar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                icon: const Icon(Icons.check, color: Colors.white),
+                              // Camada Topo: Desenha APENAS a carta selecionada
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: List.generate(_playerHand.length, (index) => _buildHandCard(index, true)),
                               ),
                             ],
                           ),
                         ),
-              ],
-            ),
-
-            // ATRIBUTO CENTRAL
-            Center(
-              child: Container(
-                width: 80, height: 80,
-                decoration: BoxDecoration(color: BattleHelpers.obterCorAtributo(_atributoSorteado), shape: BoxShape.circle, border: Border.all(color: Colors.black87, width: 3)),
-                child: Icon(BattleHelpers.obterIconeAtributo(_atributoSorteado), size: 40, color: Colors.black54), // Uso do helper
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ),
-            
-            // BANNER DE RESULTADO
-            if (_resultadoRoundTexto != null)
-              RoundResultBanner(texto: _resultadoRoundTexto!, cor: _resultadoRoundCor), // Uso do widget abstraído
-          ],
+
+              // 3. BOTÕES DE AÇÃO (Retirados da Coluna, agora livres no Stack)
+              if (_selectedCardIndex != null)
+                Positioned(
+                  bottom: 0, // Subi um pouco para afastar da carta grande
+                  left: 0,
+                  right: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      FloatingActionButton.extended(
+                        heroTag: 'btn_cancelar',
+                        backgroundColor: const Color(0xFF8B0000),
+                        onPressed: _cancelarSelecao,
+                        label: const Text('Cancelar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.close, color: Colors.white),
+                      ),
+                      const SizedBox(width: 16),
+                      FloatingActionButton.extended(
+                        heroTag: 'btn_jogar',
+                        backgroundColor: const Color(0xFF082611),
+                        onPressed: _jogarCartaSelecionada,
+                        label: const Text('Jogar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        icon: const Icon(Icons.check, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                ),
+
+              // 4. ELEMENTOS SOLTOS DA TELA
+              if (_resultadoRoundTexto != null)
+                RoundResultBanner(
+                  texto: _resultadoRoundTexto!,
+                  cor: _resultadoRoundCor,
+                ),
+              
+              Positioned(
+                top: 16, left: 16,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.exit_to_app_rounded, color: Colors.white70, size: 28),
+                    onPressed: _confirmarFuga,
+                    tooltip: 'Abandonar Batalha',
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

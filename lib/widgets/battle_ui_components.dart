@@ -135,4 +135,6 @@ class GameOverDialog extends StatelessWidget {
       ],
     );
   }
+
 }
+
