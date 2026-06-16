@@ -1,7 +1,6 @@
+import 'package:anicard/utils/cosmetic_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'dart:math' as math;
-
 import '../models/card_model.dart';
 import '../widgets/card_widget.dart';
 import '../services/battle_service.dart';
@@ -41,6 +40,11 @@ class _BattleScreenState extends State<BattleScreen> {
   String? _resultadoRoundTexto;
   Color _resultadoRoundCor = Colors.transparent;
 
+  // --- Controle de Cosméticos ---
+  String _arenaEquipadaId = 'arena_1';
+  String _bordaCartaEquipadaId = 'borda_1';
+  String _iconeVidaEquipadoId = 'vida_1';
+
   final List<String> _atributosPossiveis = [
     'instintoAssassino',
     'forca',
@@ -64,7 +68,13 @@ class _BattleScreenState extends State<BattleScreen> {
       List<CardModel> cartasJogador = await _battleService.buscarCartasEquipadas(_currentUid!);
       List<CardModel> cartasOponente = await _battleService.buscarCartasEquipadas("d9e8ZKsmAYM5EqNPgWMFTxMeEBY2");
 
+      Map<String, String> cosmeticosJogador = await _battleService.buscarCosmeticosEquipados(_currentUid!);
+
       setState(() {
+        _arenaEquipadaId = cosmeticosJogador['arena'] ?? 'arena_1';
+        _bordaCartaEquipadaId = cosmeticosJogador['bordaCarta'] ?? 'borda_1';
+        _iconeVidaEquipadoId = cosmeticosJogador['iconeVida'] ?? 'vida_1';
+
         _playerDeck = List.from(cartasJogador)..shuffle();
         _opponentDeck = List.from(cartasOponente)..shuffle();
 
@@ -238,6 +248,7 @@ class _BattleScreenState extends State<BattleScreen> {
               card: _playerHand[index],
               scale: isSelected ? 0.9 : 0.7,
               isFacedown: false,
+              bordaEquipadaId : _bordaCartaEquipadaId,
             ),
           ),
         ),
@@ -258,9 +269,9 @@ class _BattleScreenState extends State<BattleScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           image: DecorationImage(
-            image: AssetImage('assets/images/campoBatalha.png'),
+            image: AssetImage(CosmeticHelpers.obterCaminhoArena(_arenaEquipadaId)),
             fit: BoxFit.cover,
           ),
         ),
@@ -294,17 +305,17 @@ class _BattleScreenState extends State<BattleScreen> {
                       children: [
                         Positioned(
                           bottom: 25, right: 16,
-                          child: LifeHearts(activeLives: _opponentLives),
+                          child: LifeHearts(activeLives: _opponentLives, iconeId: 'vida_1'),
                         ),
                         if (_opponentDiscard.isNotEmpty)
                           Positioned(
                             top: 175, left: 16,
-                            child: CardWidget(card: _opponentDiscard.last, scale: 0.4, isFacedown: false),
+                            child: CardWidget(card: _opponentDiscard.last, scale: 0.4, isFacedown: false, bordaEquipadaId : _bordaCartaEquipadaId,),
                           ),
                         if (_opponentDeck.isNotEmpty)
                           Positioned(
                             top: 175, right: 16,
-                            child: CardWidget(card: _opponentDeck.first, scale: 0.4, isFacedown: true),
+                            child: CardWidget(card: _opponentDeck.first, scale: 0.4, isFacedown: true, bordaEquipadaId : _bordaCartaEquipadaId,),
                           ),
                         Positioned(
                           top: 0, left: 0, right: 0,
@@ -313,7 +324,7 @@ class _BattleScreenState extends State<BattleScreen> {
                             children: List.generate(_opponentHand.length, (index) {
                               return Align(
                                 widthFactor: 0.7,
-                                child: CardWidget(card: _opponentHand[index], scale: 0.5, isFacedown: true),
+                                child: CardWidget(card: _opponentHand[index], scale: 0.5, isFacedown: true, bordaEquipadaId : _bordaCartaEquipadaId,),
                               );
                             }),
                           ),
@@ -321,7 +332,7 @@ class _BattleScreenState extends State<BattleScreen> {
                         if (_opponentCurrentCard != null)
                           Align(
                             alignment: const Alignment(0, 0.4),
-                            child: CardWidget(card: _opponentCurrentCard!, scale: 0.7, isFacedown: false),
+                            child: CardWidget(card: _opponentCurrentCard!, scale: 0.7, isFacedown: false, bordaEquipadaId : _bordaCartaEquipadaId,),
                           ),
                       ],
                     ),
@@ -334,22 +345,22 @@ class _BattleScreenState extends State<BattleScreen> {
                       children: [
                         Positioned(
                           top: 25, left: 16,
-                          child: LifeHearts(activeLives: _playerLives),
+                          child: LifeHearts(activeLives: _playerLives, iconeId: _iconeVidaEquipadoId),
                         ),
                         if (_playerCurrentCard != null)
                           Align(
                             alignment: const Alignment(0, -0.4),
-                            child: CardWidget(card: _playerCurrentCard!, scale: 0.7, isFacedown: false),
+                            child: CardWidget(card: _playerCurrentCard!, scale: 0.7, isFacedown: false, bordaEquipadaId : _bordaCartaEquipadaId,),
                           ),
                         if (_playerDiscard.isNotEmpty)
                           Positioned(
                             bottom: 175, left: 16,
-                            child: CardWidget(card: _playerDiscard.last, scale: 0.4, isFacedown: false),
+                            child: CardWidget(card: _playerDiscard.last, scale: 0.4, isFacedown: false, bordaEquipadaId : _bordaCartaEquipadaId,),
                           ),
                         if (_playerDeck.isNotEmpty)
                           Positioned(
                             bottom: 175, right: 16,
-                            child: CardWidget(card: _playerDeck.first, scale: 0.4, isFacedown: true),
+                            child: CardWidget(card: _playerDeck.first, scale: 0.4, isFacedown: true, bordaEquipadaId : _bordaCartaEquipadaId,),
                           ),
                         
                         // MÃO DO JOGADOR (Em Duas Camadas)

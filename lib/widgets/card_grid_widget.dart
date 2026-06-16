@@ -7,13 +7,15 @@ class CardGridWidget extends StatelessWidget {
   final int? fixedSlots; // Permite forçar o grid a ter um tamanho fixo (ex: 9)
   final Function(dynamic card)? onCardTap;
   final Function(dynamic card)? onCardLongPress; // 👈 1. Adicionada a propriedade
+  final String bordaEquipadaId;
 
   const CardGridWidget({
     super.key, 
     required this.cards,
     this.fixedSlots, 
     this.onCardTap,
-    this.onCardLongPress, // 👈 2. Adicionado ao construtor
+    this.onCardLongPress, 
+    this.bordaEquipadaId = 'borda_1',
   });
 
   @override
@@ -79,7 +81,9 @@ class CardGridWidget extends StatelessWidget {
       child: Hero(
         tag: 'carta_animacao_${cardModel.name}', 
         child: CardWidget(
-          card: cardModel, 
+          card: cardModel,
+          isFacedown: false,
+          bordaEquipadaId: bordaEquipadaId,
         ),
       ),
     );

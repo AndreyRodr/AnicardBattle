@@ -47,4 +47,30 @@ class BattleService {
     }
     return currentUid;
   }
+
+  Future<Map<String, String>> buscarCosmeticosEquipados(String userId) async {
+    try {
+      DocumentSnapshot snapshot = await _firestore.collection('users').doc(userId).get();
+      
+      if (snapshot.exists) {
+        final Map<String, dynamic>? dados = snapshot.data() as Map<String, dynamic>?;
+        final Map<String, dynamic> cosmeticos = dados?['cosmeticosEquipados'] ?? {};
+
+        return {
+          'arena': cosmeticos['arena']?.toString() ?? 'arena_1',
+          'bordaCarta': cosmeticos['bordaCarta']?.toString() ?? 'borda_1',
+          'iconeVida': cosmeticos['iconeVida']?.toString() ?? 'vida_1',
+        };
+      }
+    } catch (e) {
+      print('Erro ao buscar cosméticos na batalha: $e');
+    }
+    
+    // Retorno de segurança (Fallback) caso dê erro
+    return {
+      'arena': 'arena_1',
+      'bordaCarta': 'borda_1',
+      'iconeVida': 'vida_1',
+    };
+  }
 }

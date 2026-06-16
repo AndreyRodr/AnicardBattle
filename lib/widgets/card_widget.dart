@@ -1,24 +1,26 @@
 import 'package:flutter/material.dart';
 import '../models/card_model.dart';
+import '../utils/cosmetic_helpers.dart';
 
 class CardWidget extends StatelessWidget {
   final CardModel card;
   final bool isFacedown;
   final double scale;
+  final String bordaEquipadaId;
 
   const CardWidget({
     super.key,
     required this.card,
     this.isFacedown = false,
     this.scale = 1.0, 
+    this.bordaEquipadaId = 'borda_1',
   });
 
   @override
   Widget build(BuildContext context) {
-    // Definimos o tamanho base da carta e multiplicamos pela escala
-    // Aumentei um pouco a proporção base para acomodar os atributos confortavelmente
     final double cardWidth = 200 * scale;
     final double cardHeight = 280 * scale;
+    final Color corDaBorda = CosmeticHelpers.obterCorBorda(bordaEquipadaId);
 
     return SizedBox(
       width: cardWidth,
@@ -30,7 +32,7 @@ class CardWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(8 * scale),
           // Borda inteligente: Dourada se for Alpha, Preta se for normal
           side: BorderSide(
-            color: (card.isAlpha && !isFacedown) ? const Color(0xFFFFD700) : Colors.black87, 
+            color: (card.isAlpha && !isFacedown) ? const Color(0xFFFFD700) : corDaBorda, 
             width: (card.isAlpha && !isFacedown ? 3 : 2) * scale,
           ), 
         ),

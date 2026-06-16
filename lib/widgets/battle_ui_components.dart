@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/cosmetic_helpers.dart';
 
 // O Banner de Vitória/Derrota
 class RoundResultBanner extends StatelessWidget {
@@ -41,16 +42,22 @@ class RoundResultBanner extends StatelessWidget {
 // Os Corações de Vida
 class LifeHearts extends StatelessWidget {
   final int activeLives;
+  final String iconeId;
 
-  const LifeHearts({super.key, required this.activeLives});
+  const LifeHearts({super.key, required this.activeLives, this.iconeId = 'vida_1',});
 
   @override
   Widget build(BuildContext context) {
+
+    final estilo = CosmeticHelpers.obterEstiloVida(iconeId);
+    final IconData iconeVisual = estilo['icone'];
+    final Color corAtiva = estilo['corAtiva'];
+
     return Row(
       children: List.generate(5, (index) {
         return Icon(
-          Icons.favorite,
-          color: index < activeLives ? Colors.green : Colors.white,
+          iconeVisual,
+          color: index < activeLives ? corAtiva : Colors.white24,
           size: 24,
         );
       }),
