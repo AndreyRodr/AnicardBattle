@@ -1,4 +1,5 @@
 import 'package:anicard/screens/splash_screen.dart';
+import 'package:anicard/services/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart'; 
@@ -14,6 +15,7 @@ Future<void> main() async {
   
   await dotenv.load(fileName: ".env");
 
+  // 1. Inicializa o Firebase primeiro para liberar as pontes nativas
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -24,6 +26,11 @@ Future<void> main() async {
   } catch (e) {
     print("Erro ao carregar o catálogo de cartas: $e");
   }
+
+  // 🌟 CORREÇÃO DO BLOQUEIO: Removemos o "await"!
+  // Ao disparar a função sem o await, o Flutter inicia o player de som em segundo plano 
+  // (paralelamente) e libera a thread principal instantaneamente para abrir o aplicativo.
+  AudioService().inicializarMusica();
 
   runApp(
     DevicePreview(
@@ -46,22 +53,17 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF183B1E)),
         useMaterial3: true,
       ),
-      // O segredo está aqui:
-      // home: const CardSandbox()
       home: StreamBuilder<User?>(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          // Se o Firebase ainda estiver a verificar a sessão...
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
-          // Se existir um utilizador logado, vai direto para o jogo
           if (snapshot.hasData) {
             return const AniCardScreen();
           }
-          // Se não estiver logado, vai para a tela de Login
           return const SplashScreen();
         },
       ),

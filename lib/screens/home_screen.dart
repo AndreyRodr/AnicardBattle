@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:anicard/services/audio_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -21,7 +22,6 @@ class AniCardScreen extends StatefulWidget {
 class _AniCardScreenState extends State<AniCardScreen> {
   int _selectedIndex = 2; // Começa na aba da Batalha
   bool _soundEffectsOn = true;
-  bool _musicOn = false;
 
   final List<Widget> _telas = [
     const ProfileView(), 
@@ -32,37 +32,64 @@ class _AniCardScreenState extends State<AniCardScreen> {
   ];
 
   void _showSettingsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return SettingsDialog(
-          initialSoundEffectsOn: _soundEffectsOn,
-          initialMusicOn: _musicOn,
-          onSoundEffectsChanged: (value) {
-            setState(() {
-              _soundEffectsOn = value;
-            });
-          },
-          onMusicChanged: (value) {
-            setState(() {
-              _musicOn = value;
-            });
-          },
-        );
-      },
-    );
+    // 🌟 CORREÇÃO CENTRAL: Agenda a abertura para o próximo frame,
+    // impedindo o conflito fatal com o StreamBuilder contínuo de moedas.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!context.mounted) return;
+
+      bool musicaLigada = true;
+      try {
+        musicaLigada = AudioService().isMusicOn;
+      } catch (_) {}
+
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        // 🌟 PERFORMANCE: Joga o modal em uma camada nativa superior isolada
+        useRootNavigator: true, 
+        builder: (BuildContext dialogContext) {
+          return StatefulBuilder(
+            builder: (context, setDialogState) {
+              return SettingsDialog(
+                initialSoundEffectsOn: _soundEffectsOn, 
+                initialMusicOn: musicaLigada,
+                onSoundEffectsChanged: (value) {
+                  setState(() {
+                    _soundEffectsOn = value;
+                  });
+                },
+                onMusicChanged: (value) {
+                  try {
+                    AudioService().alternarMusica(value);
+                  } catch (e) {
+                    debugPrint("Erro ao alternar música: $e");
+                  }
+                },
+                onMusicVolumeChanged: (volume) {
+                  try {
+                    AudioService().definirVolume(volume);
+                  } catch (e) {
+                    debugPrint("Erro ao alterar volume: $e");
+                  }
+                  // Atualiza a porcentagem de texto isoladamente dentro do diálogo
+                  setDialogState(() {}); 
+                },
+              );
+            },
+          );
+        },
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
-    // Se por algum motivo o usuário não estiver logado, evita quebrar a tela
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.green)));
     }
 
-    // 1. O StreamBuilder envolve a tela toda para escutar as moedas do usuário em tempo real
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
       builder: (context, snapshot) {
@@ -75,7 +102,6 @@ class _AniCardScreenState extends State<AniCardScreen> {
 
         return Scaffold(
           extendBody: true, 
-
           bottomNavigationBar: CustomBottomNavBar(
             selectedIndex: _selectedIndex,
             onItemSelected: (index) {
@@ -84,7 +110,6 @@ class _AniCardScreenState extends State<AniCardScreen> {
               });
             },
           ),
-
           body: Stack(
             children: [
               // Fundo
@@ -135,7 +160,7 @@ class _AniCardScreenState extends State<AniCardScreen> {
                                 const Icon(Icons.monetization_on, color: Colors.amber, size: 24),
                                 const SizedBox(width: 8),
                                 Text(
-                                  '$moedasAtuais', // 👈 AGORA EXIBE O SALDO REAL DO FIREBASE!
+                                  '$moedasAtuais', 
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
