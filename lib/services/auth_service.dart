@@ -32,6 +32,12 @@ class AuthService {
         // Você pode mudar esses números para os IDs das cartas "padrão" do seu jogo
         'cartasEquipadas': [1, 2, 3, 4, 5, 12, 7, 8, 9], 
         'inventario': [10, 11],
+
+        'cosmeticosEquipados': {
+          'arena': 'arena_1',
+          'borda': 'borda_1',
+          'iconeVida': 'vida_1',
+        },
         
         'criadoEm': FieldValue.serverTimestamp(), // Salva a data e hora do registro
       });
