@@ -71,6 +71,8 @@ class GameOverDialog extends StatelessWidget {
   final int playerLives;
   final int opponentLives;
   final Color corDestaque;
+  final int moedasGanhas;   // 🌟 Adicionado
+  final int trofeusGanhos;
 
   const GameOverDialog({
     super.key,
@@ -78,70 +80,79 @@ class GameOverDialog extends StatelessWidget {
     required this.playerLives,
     required this.opponentLives,
     required this.corDestaque,
+    required this.moedasGanhas,
+    required this.trofeusGanhos,
   });
 
   @override
   Widget build(BuildContext context) {
+    // Detecta se os troféus são positivos ou negativos para colocar o sinal de + ou -
+    final String sinalTrofeu = trofeusGanhos >= 0 ? "+" : "";
+    final Color corTrofeu = trofeusGanhos >= 0 ? Colors.amber : Colors.redAccent;
+
     return AlertDialog(
-      backgroundColor: const Color(0xFF351F14), // Fundo marrom escuro
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: corDestaque, width: 3),
-      ),
+      backgroundColor: const Color(0xFF221108), // Tom marrom escuro de madeira
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       title: Text(
         titulo,
         textAlign: TextAlign.center,
-        style: TextStyle(
-          color: corDestaque,
-          fontSize: 28,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TextStyle(color: corDestaque, fontSize: 32, fontWeight: FontWeight.bold),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
-            'Placar Final',
-            style: TextStyle(color: Colors.white70, fontSize: 16),
+          // Placar de Vidas (ex: 5 x 2)
+          Text(
+            '$playerLives x $opponentLives',
+            style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 20),
+          
+          // 🌟 LINHA DE RECOMPENSAS COMPACTA (Estilo Clash Royale)
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Column(
+              // Bloco de Troféus
+              Row(
                 children: [
-                  const Text('Você', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  Text(playerLives.toString(), style: const TextStyle(color: Colors.green, fontSize: 24, fontWeight: FontWeight.bold)),
+                  Text(
+                    '$sinalTrofeu$trofeusGanhos',
+                    style: TextStyle(color: corTrofeu, fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.emoji_events, color: Colors.amber, size: 22), // Ícone de Troféu
                 ],
               ),
-              const Text('X', style: TextStyle(color: Colors.white54, fontSize: 20)),
-              Column(
-                children: [
-                  const Text('Oponente', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  Text(opponentLives.toString(), style: const TextStyle(color: Colors.redAccent, fontSize: 24, fontWeight: FontWeight.bold)),
-                ],
-              ),
+              const SizedBox(width: 24), // Espaçamento entre os dois
+              
+              // Bloco de Moedas (Apenas exibe se for maior que zero)
+              if (moedasGanhas > 0)
+                Row(
+                  children: [
+                    Text(
+                      '+$moedasGanhas',
+                      style: const TextStyle(color: Colors.greenAccent, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.monetization_on, color: Colors.amber, size: 22), // Ícone de Moeda
+                  ],
+                ),
             ],
           ),
         ],
       ),
-      actionsAlignment: MainAxisAlignment.center,
       actions: [
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: corDestaque,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+        Center(
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF1B3620)),
+            onPressed: () {
+              // Volta para a HomeScreen limpando a pilha de navegação
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            },
+            child: const Text('Voltar ao Menu', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
-          onPressed: () {
-            // Esse comando fecha todas as telas da pilha até chegar na primeira tela do app (a Home)
-            Navigator.of(context).popUntil((route) => route.isFirst);
-          },
-          child: const Text('Voltar para a Home', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
         ),
       ],
     );
   }
-
 }
-

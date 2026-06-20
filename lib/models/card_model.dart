@@ -28,21 +28,14 @@ class CardModel {
   });
 
   factory CardModel.fromJson(Map<String, dynamic> json) {
-    // Isola o bloco "attributes" do JSON para facilitar a extração dos valores
     final attributes = json['attributes'] as Map<String, dynamic>? ?? {};
 
     return CardModel(
-      // Converte o id com segurança
       id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
-      
       name: json['name'] ?? 'Desconhecido',
       pack: json['pack'] ?? 'desconhecido',
       isAlpha: json['isAlpha'] ?? false,
-      
-      // Mapeamento do caminho da imagem (lê de "image" no JSON)
       imagePath: json['image'] ?? 'assets/images/cards/default.png',
-      
-      // Mapeamento dos atributos aninhados
       instintoAssassino: attributes['instintoAssassino'] ?? 0,
       forca: attributes['forca'] ?? 0,
       peso: attributes['peso'] ?? 0,
@@ -52,7 +45,6 @@ class CardModel {
     );
   }
 
-  // É sempre uma boa prática ter o toJson para quando formos salvar dados no banco
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -69,5 +61,51 @@ class CardModel {
         'media': media,
       }
     };
+  }
+
+  // 🌟 NOVO MÉTODO: Retorna o valor numérico com base no nome do atributo em String
+  // Útil para a Engine mapear os cálculos matemáticos da IA sem ifs gigantescos
+  int getValorAtributo(String nomeAtributo) {
+    switch (nomeAtributo) {
+      case 'instintoAssassino':
+        return instintoAssassino;
+      case 'forca':
+        return forca;
+      case 'peso':
+        return peso;
+      case 'inteligencia':
+        return inteligencia;
+      case 'agilidade':
+        return agilidade;
+      case 'media':
+        return media;
+      default:
+        return 0;
+    }
+  }
+
+  // 🌟 NOVO MÉTODO: Descobre sozinho qual é o maior atributo desta carta específica
+  // Ideal para quando o Bot Difícil vencer a rodada e precisar escolher a melhor opção dele
+  String getMelhorAtributo() {
+    final Map<String, int> mapaAtributos = {
+      'instintoAssassino': instintoAssassino,
+      'forca': forca,
+      'peso': peso,
+      'inteligencia': inteligencia,
+      'agilidade': agilidade,
+      'media': media,
+    };
+
+    String melhorAtributo = 'forca';
+    int maiorValor = -1;
+
+    mapaAtributos.forEach((chave, valor) {
+      if (valor > maiorValor) {
+        maiorValor = valor;
+        melhorAtributo = chave;
+      }
+    });
+
+    return melhorAtributo;
   }
 }

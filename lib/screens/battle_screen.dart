@@ -1,14 +1,24 @@
+import 'dart:math';
 import 'package:anicard/utils/cosmetic_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // 🌟 Adicionado para o Ranking
 import '../models/card_model.dart';
 import '../widgets/card_widget.dart';
 import '../services/battle_service.dart';
 import '../utils/battle_helpers.dart';
 import '../widgets/battle_ui_components.dart';
 
+// 🌟 Enum de controle de dificuldades
+enum BotDifficulty { iniciante, intermediario, dificil }
+
 class BattleScreen extends StatefulWidget {
-  const BattleScreen({super.key});
+  final BotDifficulty dificuldade; // 🌟 Recebe qual bot o jogador escolheu enfrentar
+
+  const BattleScreen({
+    super.key, 
+    this.dificuldade = BotDifficulty.intermediario, // Padrão caso não passe
+  });
 
   @override
   State<BattleScreen> createState() => _BattleScreenState();
@@ -16,7 +26,6 @@ class BattleScreen extends StatefulWidget {
 
 class _BattleScreenState extends State<BattleScreen> {
   final Color _tableColor = const Color(0xFF6B4E31);
-  final Color _dividerColor = Colors.black87;
 
   int? _selectedCardIndex; 
 
@@ -40,7 +49,6 @@ class _BattleScreenState extends State<BattleScreen> {
   String? _resultadoRoundTexto;
   Color _resultadoRoundCor = Colors.transparent;
 
-  // --- Controle de Cosméticos ---
   String _arenaEquipadaId = 'arena_1';
   String _bordaCartaEquipadaId = 'borda_1';
   String _iconeVidaEquipadoId = 'vida_1';
@@ -55,6 +63,16 @@ class _BattleScreenState extends State<BattleScreen> {
   ];
   String _atributoSorteado = 'forca';
 
+  // 🌟 Dicionário para exibir os nomes limpos e elegantes na tela
+  final Map<String, String> _nomesAtributos = {
+    'instintoAssassino': 'Instinto Assassino',
+    'forca': 'Força',
+    'peso': 'Peso',
+    'inteligencia': 'Inteligência',
+    'agilidade': 'Agilidade',
+    'media': 'Média Geral',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -66,6 +84,8 @@ class _BattleScreenState extends State<BattleScreen> {
 
     try {
       List<CardModel> cartasJogador = await _battleService.buscarCartasEquipadas(_currentUid!);
+      
+      // Carrega o deck do Bot padrão da sua base
       List<CardModel> cartasOponente = await _battleService.buscarCartasEquipadas("d9e8ZKsmAYM5EqNPgWMFTxMeEBY2");
 
       Map<String, String> cosmeticosJogador = await _battleService.buscarCosmeticosEquipados(_currentUid!);
@@ -84,8 +104,89 @@ class _BattleScreenState extends State<BattleScreen> {
         }
         _isCarregandoPartida = false;
       });
+
+      // Mostra o aviso do primeiro atributo sorteado no início da partida
+      _mostrarAvisoAtributo(_atributoSorteado);
     } catch (e) {
       setState(() => _isCarregandoPartida = false);
+    }
+  }
+
+  // 🌟 FUNÇÃO DE TEXTO DO ATRIBUTO: Mostra um banner na tela estilo o RoundResultBanner
+  void _mostrarAvisoAtributo(String atributo) {
+    setState(() {
+      _resultadoRoundTexto = "Atributo: ${_nomesAtributos[atributo]}";
+      _resultadoRoundCor = Colors.amberAccent;
+    });
+
+    Future.delayed(const Duration(milliseconds: 1800), () {
+      if (mounted && _resultadoRoundTexto != null && _resultadoRoundTexto!.contains("Atributo:")) {
+        setState(() {
+          _resultadoRoundTexto = null;
+        });
+      }
+    });
+  }
+
+  void _jogarCartaSelecionada() {
+    if (_selectedCardIndex == null) return;
+
+    int cardIndex = _selectedCardIndex!; 
+
+    setState(() {
+      _selectedCardIndex = null; 
+      _playerCurrentCard = _playerHand.removeAt(cardIndex);
+
+      if (_opponentHand.isNotEmpty) {
+        // 🌟 IMPLEMENTAÇÃO DA INTELIGÊNCIA DOS BOTS:
+        _opponentCurrentCard = _executarMenteDoBot();
+      }
+    });
+    _resolverRodada();
+  }
+
+  /// 🧠 ENGINE DE DECISÃO INTEGRADA DOS BOTS
+  CardModel _executarMenteDoBot() {
+    final Random random = Random();
+    
+    switch (widget.dificuldade) {
+      case BotDifficulty.iniciante:
+        // 🟢 Joga 100% aleatório sem olhar o atributo da rodada
+        int index = random.nextInt(_opponentHand.length);
+        return _opponentHand.removeAt(index);
+
+      case BotDifficulty.intermediario:
+        // 🟡 Sempre escolhe o maior valor bruto para o atributo ativo
+        int melhorIndex = 0;
+        int maiorValor = -1;
+        for (int i = 0; i < _opponentHand.length; i++) {
+          int v = BattleHelpers.obterValorAtributo(_opponentHand[i], _atributoSorteado);
+          if (v > maiorValor) {
+            maiorValor = v;
+            melhorIndex = i;
+          }
+        }
+        return _opponentHand.removeAt(melhorIndex);
+
+      case BotDifficulty.dificil:
+        // 🔴 Estrategista: Ordena para conhecer a mais forte e a mais fraca
+        List<int> indicesOrdenados = List.generate(_opponentHand.length, (i) => i);
+        indicesOrdenados.sort((a, b) => 
+          BattleHelpers.obterValorAtributo(_opponentHand[b], _atributoSorteado)
+          .compareTo(BattleHelpers.obterValorAtributo(_opponentHand[a], _atributoSorteado))
+        );
+
+        int indexMaisForte = indicesOrdenados.first;
+        int indexMaisFraca = indicesOrdenados.last;
+
+        int maiorValorDoBot = BattleHelpers.obterValorAtributo(_opponentHand[indexMaisForte], _atributoSorteado);
+
+        // Se o melhor valor do bot for muito baixo (menor que 48), ele assume que perdeu o round.
+        // Em vez de queimar carta boa, ele descarta a pior da mão para estocar poder.
+        if (maiorValorDoBot < 48 && _opponentHand.length > 1) {
+          return _opponentHand.removeAt(indexMaisFraca);
+        }
+        return _opponentHand.removeAt(indexMaisForte);
     }
   }
 
@@ -137,21 +238,50 @@ class _BattleScreenState extends State<BattleScreen> {
 
       _atributoSorteado = (_atributosPossiveis.toList()..shuffle()).first;
     });
+
+    // 🌟 Exibe por extenso qual foi o novo atributo sorteado para a próxima rodada!
+    _mostrarAvisoAtributo(_atributoSorteado);
   }
 
   void _finalizarPartida() {
     String tituloResultado;
     Color corResultado;
+    bool jogadorVenceu = false;
 
     if (_playerLives > _opponentLives) {
       tituloResultado = "VITÓRIA!";
       corResultado = Colors.greenAccent;
+      jogadorVenceu = true;
     } else if (_opponentLives > _playerLives) {
       tituloResultado = "DERROTA!";
       corResultado = Colors.redAccent;
     } else {
       tituloResultado = "EMPATE!";
       corResultado = Colors.grey;
+    }
+
+    // --- Cálculo de Recompensas Visuais para o Dialog ---
+    int trofeusMostrados = 0;
+    int moedasMostradas = 0;
+
+    if (jogadorVenceu) {
+      if (widget.dificuldade == BotDifficulty.iniciante) { trofeusMostrados = 10; moedasMostradas = 15; }
+      else if (widget.dificuldade == BotDifficulty.intermediario) { trofeusMostrados = 25; moedasMostradas = 35; }
+      else if (widget.dificuldade == BotDifficulty.dificil) { trofeusMostrados = 50; moedasMostradas = 70; }
+    } else {
+      // Se perdeu, exibe a perda de troféus (moedas continua 0)
+      if (widget.dificuldade == BotDifficulty.iniciante) trofeusMostrados = -5;
+      else if (widget.dificuldade == BotDifficulty.intermediario) trofeusMostrados = -15;
+      else if (widget.dificuldade == BotDifficulty.dificil) trofeusMostrados = -25;
+    }
+
+    // Gravação no banco de dados (Mantido idêntico)
+    if (_currentUid != null) {
+      _atualizarTrofeusNoFirestore(
+        uid: _currentUid!, 
+        dificuldade: widget.dificuldade, 
+        venceu: jogadorVenceu
+      );
     }
 
     showDialog(
@@ -163,9 +293,54 @@ class _BattleScreenState extends State<BattleScreen> {
           playerLives: _playerLives,
           opponentLives: _opponentLives,
           corDestaque: corResultado,
+          // 🌟 PASSANDO OS NOVOS PARÂMETROS PARA O SEU DIALOG:
+          moedasGanhas: moedasMostradas,
+          trofeusGanhos: trofeusMostrados,
         );
       },
     );
+  }
+
+  /// 🏆 SISTEMA DE PONTUAÇÃO VIA TRANSACTION ATÔMICA
+  Future<void> _atualizarTrofeusNoFirestore({
+    required String uid,
+    required BotDifficulty dificuldade,
+    required bool venceu,
+  }) async {
+    final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
+
+    int saldoTrofeus = 0;
+    int saldoMoedas = 0;
+
+    if (venceu) {
+      if (dificuldade == BotDifficulty.iniciante) { saldoTrofeus = 10; saldoMoedas = 15; }
+      else if (dificuldade == BotDifficulty.intermediario) { saldoTrofeus = 25; saldoMoedas = 35; }
+      else if (dificuldade == BotDifficulty.dificil) { saldoTrofeus = 50; saldoMoedas = 70; }
+    } else {
+      if (dificuldade == BotDifficulty.iniciante) saldoTrofeus = -5;
+      else if (dificuldade == BotDifficulty.intermediario) saldoTrofeus = -15;
+      else if (dificuldade == BotDifficulty.dificil) saldoTrofeus = -25;
+    }
+
+    try {
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final snapshot = await transaction.get(docRef);
+        if (!snapshot.exists) return;
+
+        int trofeusAtuais = snapshot.data()?['trofeus'] ?? 0;
+        int moedasAtuais = snapshot.data()?['moedas'] ?? 0;
+
+        int novosTrofeus = (trofeusAtuais + saldoTrofeus).clamp(0, 99999);
+        int novasMoedas = moedasAtuais + saldoMoedas;
+
+        transaction.update(docRef, {
+          'trofeus': novosTrofeus,
+          'moedas': novasMoedas,
+        });
+      });
+    } catch (e) {
+      debugPrint("Erro ao salvar dados pós-batalha: $e");
+    }
   }
 
   void _confirmarFuga() {
@@ -176,7 +351,7 @@ class _BattleScreenState extends State<BattleScreen> {
           backgroundColor: const Color(0xFF351F14),
           title: const Text('Abandonar Batalha', style: TextStyle(color: Colors.white)),
           content: const Text(
-            'Se você sair agora, isso contará como uma DERROTA. Tem certeza que deseja fugir?',
+            'Se você sair agora, isso contará como uma DERROTA e você perderá troféus. Deseja fugir?',
             style: TextStyle(color: Colors.white70),
           ),
           actions: [
@@ -187,6 +362,10 @@ class _BattleScreenState extends State<BattleScreen> {
             ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
               onPressed: () {
+                // Se fugir, aplica penalidade de derrota na dificuldade atual
+                if (_currentUid != null) {
+                  _atualizarTrofeusNoFirestore(uid: _currentUid!, dificuldade: widget.dificuldade, venceu: false);
+                }
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
               child: const Text('Desistir', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -209,33 +388,15 @@ class _BattleScreenState extends State<BattleScreen> {
     });
   }
 
-  void _jogarCartaSelecionada() {
-    if (_selectedCardIndex == null) return;
-
-    int cardIndex = _selectedCardIndex!; 
-
-    setState(() {
-      _selectedCardIndex = null; 
-      _playerCurrentCard = _playerHand.removeAt(cardIndex);
-
-      if (_opponentHand.isNotEmpty) {
-        _opponentCurrentCard = _opponentHand.removeAt(0);
-      }
-    });
-    _resolverRodada();
-  }
-
-  // --- Método Auxiliar para desenhar a carta (Resolve a sobreposição) ---
   Widget _buildHandCard(int index, bool showOnlySelected) {
     bool isSelected = _selectedCardIndex == index;
-    // Lógica da sobreposição: Cria "fantasmas" invisíveis para manter o layout perfeito
     bool isVisible = showOnlySelected ? isSelected : !isSelected;
 
     return Align(
       widthFactor: 0.7,
       child: Visibility(
         visible: isVisible,
-        maintainSize: true, // Mantém o espaço exato da carta
+        maintainSize: true, 
         maintainAnimation: true,
         maintainState: true,
         child: GestureDetector(
@@ -278,20 +439,37 @@ class _BattleScreenState extends State<BattleScreen> {
         child: SafeArea(
           child: Stack(
             children: [
-              // 1. ATRIBUTO CENTRAL (Movido para o fundo do Stack para ser coberto pelas cartas)
+              // 1. ATRIBUTO CENTRAL
               Center(
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: BattleHelpers.obterCorAtributo(_atributoSorteado),
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.black87, width: 3),
-                  ),
-                  child: Icon(
-                    BattleHelpers.obterIconeAtributo(_atributoSorteado),
-                    size: 40,
-                    color: Colors.black54,
+                child: GestureDetector(
+                  // 🌟 CLIQUE NO ÍCONE: Mostra um balão informativo informando o nome por extenso
+                  onTap: () {
+                    ScaffoldMessenger.of(context).removeCurrentSnackBar();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          "Atributo em disputa: ${_nomesAtributos[_atributoSorteado]}",
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        backgroundColor: BattleHelpers.obterCorAtributo(_atributoSorteado),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: BattleHelpers.obterCorAtributo(_atributoSorteado),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.black87, width: 3),
+                    ),
+                    child: Icon(
+                      BattleHelpers.obterIconeAtributo(_atributoSorteado),
+                      size: 40,
+                      color: Colors.black54,
+                    ),
                   ),
                 ),
               ),
@@ -338,7 +516,6 @@ class _BattleScreenState extends State<BattleScreen> {
                     ),
                   ),
 
-
                   // JOGADOR
                   Expanded(
                     child: Stack(
@@ -362,19 +539,15 @@ class _BattleScreenState extends State<BattleScreen> {
                             bottom: 175, right: 16,
                             child: CardWidget(card: _playerDeck.first, scale: 0.4, isFacedown: true, bordaEquipadaId : _bordaCartaEquipadaId,),
                           ),
-                        
-                        // MÃO DO JOGADOR (Em Duas Camadas)
                         Positioned(
                           bottom: 0, left: 0, right: 0,
                           child: Stack(
                             alignment: Alignment.bottomCenter,
                             children: [
-                              // Camada Base: Desenha as cartas não selecionadas
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: List.generate(_playerHand.length, (index) => _buildHandCard(index, false)),
                               ),
-                              // Camada Topo: Desenha APENAS a carta selecionada
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: List.generate(_playerHand.length, (index) => _buildHandCard(index, true)),
@@ -388,10 +561,10 @@ class _BattleScreenState extends State<BattleScreen> {
                 ],
               ),
 
-              // 3. BOTÕES DE AÇÃO (Retirados da Coluna, agora livres no Stack)
+              // 3. BOTÕES DE AÇÃO
               if (_selectedCardIndex != null)
                 Positioned(
-                  bottom: 0, // Subi um pouco para afastar da carta grande
+                  bottom: 0, 
                   left: 0,
                   right: 0,
                   child: Row(
@@ -416,7 +589,7 @@ class _BattleScreenState extends State<BattleScreen> {
                   ),
                 ),
 
-              // 4. ELEMENTOS SOLTOS DA TELA
+              // 4. ELEMENTOS SOLTOS DA TELA (Resultado e Avisos de Atributos)
               if (_resultadoRoundTexto != null)
                 RoundResultBanner(
                   texto: _resultadoRoundTexto!,

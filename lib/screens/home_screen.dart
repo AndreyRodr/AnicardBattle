@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../views/battle_view.dart';
+import '../views/battle_view.dart'; // 🌟 De volta para a sua BattleView
 import '../views/profile_view.dart';
 import '../views/store_view.dart';
 import '../views/deck_view.dart';
@@ -27,17 +27,16 @@ class _AniCardScreenState extends State<AniCardScreen> {
   final List<Widget> _telas = [
     const ProfileView(), 
     const DeckView(),
-    const BattleView(), 
+    const BattleView(), // 🌟 A BattleView agora cuidará do seu próprio botão e do menu
     const OpenPackView(),
     const StoreView(),
   ];
 
   void _showSettingsDialog(BuildContext context) {
-    // 🌟 SEGUNDO CLIQUE BARRADO: Se já estiver abrindo ou aberto, ignora completamente
     if (_isSettingsOpen) return; 
 
     setState(() {
-      _isSettingsOpen = true; // Ativa a trava imediatamente no clique
+      _isSettingsOpen = true; 
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -83,8 +82,6 @@ class _AniCardScreenState extends State<AniCardScreen> {
           );
         },
       ).then((_) {
-        // 🌟 DESTRAVA AO FECHAR: Quando o jogador fechar o modal (no x ou fora dele),
-        // o Flutter executa esse bloco e libera o botão para o próximo clique único.
         if (mounted) {
           setState(() {
             _isSettingsOpen = false;
