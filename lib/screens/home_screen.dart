@@ -10,6 +10,7 @@ import '../views/store_view.dart';
 import '../views/deck_view.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 import '../widgets/settings_dialog.dart';
+import '../widgets/ranking_dialog.dart';
 import '../views/open_pack_view.dart';
 
 class AniCardScreen extends StatefulWidget {
@@ -143,45 +144,87 @@ class _AniCardScreenState extends State<AniCardScreen> {
                   children: [
                     // --- Top Bar Dinâmica ---
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          GestureDetector(
-                            onTap: () => _showSettingsDialog(context),
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.6),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.settings, color: Colors.grey, size: 28),
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.black.withOpacity(0.6),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.monetization_on, color: Colors.amber, size: 24),
-                                const SizedBox(width: 8),
-                                Text(
-                                  '$moedasAtuais', 
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
+  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      // Agrupamento dos botões de utilidade no canto esquerdo
+      Row(
+        children: [
+          // Botão de Configurações
+          GestureDetector(
+            onTap: () => _showSettingsDialog(context),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.settings, color: Colors.grey, size: 28),
+            ),
+          ),
+          const SizedBox(width: 10), // Espaçamento entre os botões
+          
+          // 🌟 CONTADOR E BOTÃO DE RANKING (Estilo caixa de moedas)
+          GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => const RankingDialog(),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.amber.withOpacity(0.2), width: 1),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.emoji_events, color: Colors.amber, size: 24),
+                  const SizedBox(width: 8),
+                  // Puxa dinamicamente a variável do snapshot ou inicia zerada
+                  Text(
+                    '${snapshot.hasData && snapshot.data!.exists ? (snapshot.data!.data() as Map<String, dynamic>)['trofeus'] ?? 0 : 0}', 
+                    style: const TextStyle(
+                      color: Colors.amber,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
                     ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      
+      // Indicador de moedas existente
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.monetization_on, color: Colors.amber, size: 24),
+            const SizedBox(width: 8),
+            Text(
+              '$moedasAtuais', 
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  ),
+),
 
                     // --- MEIO DA TELA (Dinâmico) ---
                     Expanded(
