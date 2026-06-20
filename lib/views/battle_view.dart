@@ -97,12 +97,12 @@ class BattleView extends StatelessWidget {
 
                 // 🔒 MODO PVP ONLINE (APAGADO / EM BREVE)
                 Opacity(
-                  opacity: 0.4,
+                  opacity: 0.5,
                   child: _buildMenuButton(
                     context: context,
                     title: 'Batalha PvP (Online)',
                     subtitle: 'Modo Multijogador - Em Breve!',
-                    color: const Color(0xFF1A237E),
+                    color: const Color.fromARGB(255, 192, 197, 255),
                     icon: Icons.thunderstorm,
                     dificuldade: null, // Desabilita clique
                   ),
