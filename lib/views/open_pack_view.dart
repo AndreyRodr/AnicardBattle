@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:anicard/services/quest_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -120,6 +121,14 @@ class _OpenPackViewState extends State<OpenPackView> {
         'pacotes.$currentPackId': FieldValue.increment(-1),
         'inventario': FieldValue.arrayUnion(idsParaInventario),
       });
+
+      // 🌟 O GATILHO COMPATIVEL COM AS MISSÕES DIÁRIAS/SEMANAIS:
+      // Executa apenas se a gravação do pacote foi um sucesso completo
+      try {
+        await QuestService().atualizarProgressoMissao(uid: user.uid, acaoId: 'packs');
+      } catch (e) {
+        debugPrint("Erro ao registrar progresso de abertura de pack: $e");
+      }
 
     } catch (e) {
       setState(() => _isOpening = false);
@@ -353,6 +362,7 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
   Widget build(BuildContext context) {
     final cartaAtual = widget.cartas[_cardIndex];
     final ehRepetida = widget.repetidas[_cardIndex];
+    
     
     return GestureDetector(
       // 🌟 MUDANÇA: Agora o detector de gestos chama a função central mapeando cliques em qualquer parte vazia da tela

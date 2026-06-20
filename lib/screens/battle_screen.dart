@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'package:anicard/services/quest_service.dart';
 import 'package:anicard/utils/cosmetic_helpers.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -264,6 +265,8 @@ class _BattleScreenState extends State<BattleScreen> {
     int trofeusMostrados = 0;
     int moedasMostradas = 0;
 
+    
+
     if (jogadorVenceu) {
       if (widget.dificuldade == BotDifficulty.iniciante) { trofeusMostrados = 10; moedasMostradas = 15; }
       else if (widget.dificuldade == BotDifficulty.intermediario) { trofeusMostrados = 25; moedasMostradas = 35; }
@@ -274,6 +277,32 @@ class _BattleScreenState extends State<BattleScreen> {
       else if (widget.dificuldade == BotDifficulty.intermediario) trofeusMostrados = -15;
       else if (widget.dificuldade == BotDifficulty.dificil) trofeusMostrados = -25;
     }
+
+    // Dentro do método _finalizarPartida() da BattleScreen:
+    if (_currentUid != null) {
+      _atualizarTrofeusNoFirestore(
+        uid: _currentUid!, 
+        dificuldade: widget.dificuldade, 
+        venceu: jogadorVenceu
+      );
+
+    // 🌟 GATILHO DE MISSÕES DA PARTIDA:
+    final questService = QuestService();
+    
+    // 1. Sempre computa progresso na missão geral de "jogar partidas"
+    questService.atualizarProgressoMissao(uid: _currentUid!, acaoId: 'jogar');
+
+    // 2. Se o jogador venceu, computa progresso na missão específica da dificuldade
+    if (jogadorVenceu) {
+      if (widget.dificuldade == BotDifficulty.iniciante) {
+        questService.atualizarProgressoMissao(uid: _currentUid!, acaoId: 'facil');
+      } else if (widget.dificuldade == BotDifficulty.intermediario) {
+        questService.atualizarProgressoMissao(uid: _currentUid!, acaoId: 'inter');
+      } else if (widget.dificuldade == BotDifficulty.dificil) {
+        questService.atualizarProgressoMissao(uid: _currentUid!, acaoId: 'dificil');
+      }
+    }
+  }
 
     // Gravação no banco de dados (Mantido idêntico)
     if (_currentUid != null) {

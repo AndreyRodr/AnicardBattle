@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-import '../views/battle_view.dart'; // 🌟 De volta para a sua BattleView
+import '../views/battle_view.dart'; 
 import '../views/profile_view.dart';
 import '../views/store_view.dart';
 import '../views/deck_view.dart';
@@ -12,6 +12,7 @@ import '../widgets/custom_bottom_nav_bar.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/ranking_dialog.dart';
 import '../views/open_pack_view.dart';
+import '../widgets/quests_dialog.dart'; 
 
 class AniCardScreen extends StatefulWidget {
   const AniCardScreen({super.key});
@@ -28,7 +29,7 @@ class _AniCardScreenState extends State<AniCardScreen> {
   final List<Widget> _telas = [
     const ProfileView(), 
     const DeckView(),
-    const BattleView(), // 🌟 A BattleView agora cuidará do seu próprio botão e do menu
+    const BattleView(), 
     const OpenPackView(),
     const StoreView(),
   ];
@@ -92,6 +93,13 @@ class _AniCardScreenState extends State<AniCardScreen> {
     });
   }
 
+  void _abrirMenuMissoes(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const QuestsDialog(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -104,10 +112,12 @@ class _AniCardScreenState extends State<AniCardScreen> {
       stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
       builder: (context, snapshot) {
         int moedasAtuais = 0;
+        int trofeusAtuais = 0;
 
         if (snapshot.hasData && snapshot.data!.exists) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
           moedasAtuais = data['moedas'] ?? 0;
+          trofeusAtuais = data['trofeus'] ?? 0;
         }
 
         return Scaffold(
@@ -144,87 +154,113 @@ class _AniCardScreenState extends State<AniCardScreen> {
                   children: [
                     // --- Top Bar Dinâmica ---
                     Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      // Agrupamento dos botões de utilidade no canto esquerdo
-      Row(
-        children: [
-          // Botão de Configurações
-          GestureDetector(
-            onTap: () => _showSettingsDialog(context),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.settings, color: Colors.grey, size: 28),
-            ),
-          ),
-          const SizedBox(width: 10), // Espaçamento entre os botões
-          
-          // 🌟 CONTADOR E BOTÃO DE RANKING (Estilo caixa de moedas)
-          GestureDetector(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => const RankingDialog(),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.amber.withOpacity(0.2), width: 1),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.emoji_events, color: Colors.amber, size: 24),
-                  const SizedBox(width: 8),
-                  // Puxa dinamicamente a variável do snapshot ou inicia zerada
-                  Text(
-                    '${snapshot.hasData && snapshot.data!.exists ? (snapshot.data!.data() as Map<String, dynamic>)['trofeus'] ?? 0 : 0}', 
-                    style: const TextStyle(
-                      color: Colors.amber,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          // 🟢 LADO ESQUERDO: Configurações e Ranking/Troféus
+                          Row(
+                            children: [
+                              // Botão de Configurações
+                              GestureDetector(
+                                onTap: () => _showSettingsDialog(context),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.6),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.settings, color: Colors.grey, size: 28),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              
+                              // Contador de Ranking
+                              GestureDetector(
+                                onTap: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => const RankingDialog(),
+                                  );
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.6),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: Colors.amber.withOpacity(0.2), width: 1),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.emoji_events, color: Colors.amber, size: 24),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '$trofeusAtuais', 
+                                        style: const TextStyle(
+                                          color: Colors.amber,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 18,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          // 🟡 LADO DIREITO: Missões colado com o Saldo de Moedas
+                          Row(
+                            children: [
+                              // Ícone de Missões/Recompensas Diárias
+                              GestureDetector(
+                                onTap: () => _abrirMenuMissoes(context),
+                                child: Container(
+                                  padding: const EdgeInsets.all(9), // Ajustado levemente o padding para equilibrar o tamanho
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF522121),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: Colors.amber.withOpacity(0.5), width: 1.5),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.3),
+                                        blurRadius: 6,
+                                        offset: const Offset(0, 3),
+                                      )
+                                    ],
+                                  ),
+                                  child: const Icon(Icons.assignment_turned_in, color: Colors.amber, size: 24),
+                                ),
+                              ),
+                              const SizedBox(width: 10), // Espaço perfeito entre os dois blocos monetários
+                              
+                              // Indicador de moedas existente
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.6),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.monetization_on, color: Colors.amber, size: 24),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '$moedasAtuais', 
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-      
-      // Indicador de moedas existente
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.6),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.monetization_on, color: Colors.amber, size: 24),
-            const SizedBox(width: 8),
-            Text(
-              '$moedasAtuais', 
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  ),
-),
 
                     // --- MEIO DA TELA (Dinâmico) ---
                     Expanded(
