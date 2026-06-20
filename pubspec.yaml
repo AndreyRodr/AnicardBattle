@@ -43,6 +43,7 @@ dependencies:
   cloud_firestore: ^6.4.1
   flip_card: ^0.7.0
   just_audio: ^0.9.44
+  just_audio_windows: ^0.2.2
 
 dev_dependencies:
   flutter_test:

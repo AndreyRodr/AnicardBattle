@@ -22,6 +22,7 @@ class AniCardScreen extends StatefulWidget {
 class _AniCardScreenState extends State<AniCardScreen> {
   int _selectedIndex = 2; // Começa na aba da Batalha
   bool _soundEffectsOn = true;
+  bool _isSettingsOpen = false;
 
   final List<Widget> _telas = [
     const ProfileView(), 
@@ -32,8 +33,13 @@ class _AniCardScreenState extends State<AniCardScreen> {
   ];
 
   void _showSettingsDialog(BuildContext context) {
-    // 🌟 CORREÇÃO CENTRAL: Agenda a abertura para o próximo frame,
-    // impedindo o conflito fatal com o StreamBuilder contínuo de moedas.
+    // 🌟 SEGUNDO CLIQUE BARRADO: Se já estiver abrindo ou aberto, ignora completamente
+    if (_isSettingsOpen) return; 
+
+    setState(() {
+      _isSettingsOpen = true; // Ativa a trava imediatamente no clique
+    });
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!context.mounted) return;
 
@@ -45,7 +51,6 @@ class _AniCardScreenState extends State<AniCardScreen> {
       showDialog(
         context: context,
         barrierDismissible: true,
-        // 🌟 PERFORMANCE: Joga o modal em uma camada nativa superior isolada
         useRootNavigator: true, 
         builder: (BuildContext dialogContext) {
           return StatefulBuilder(
@@ -71,14 +76,21 @@ class _AniCardScreenState extends State<AniCardScreen> {
                   } catch (e) {
                     debugPrint("Erro ao alterar volume: $e");
                   }
-                  // Atualiza a porcentagem de texto isoladamente dentro do diálogo
                   setDialogState(() {}); 
                 },
               );
             },
           );
         },
-      );
+      ).then((_) {
+        // 🌟 DESTRAVA AO FECHAR: Quando o jogador fechar o modal (no x ou fora dele),
+        // o Flutter executa esse bloco e libera o botão para o próximo clique único.
+        if (mounted) {
+          setState(() {
+            _isSettingsOpen = false;
+          });
+        }
+      });
     });
   }
 

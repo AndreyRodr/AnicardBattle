@@ -1,6 +1,4 @@
-import 'package:flutter/foundation.dart'; // 🌟 Importante para usar kIsWeb
 import 'package:flutter/material.dart';
-import 'dart:io'; // 🌟 Importante para checar se é Windows/Android
 import 'package:just_audio/just_audio.dart';
 
 class AudioService {
@@ -17,30 +15,26 @@ class AudioService {
   double get volume => _volume;
 
   Future<void> inicializarMusica() async {
-    // 🌟 RESOLUÇÃO DEFINITIVA DO CRASH DE WINDOWS:
-    // Se o app estiver rodando nativamente no Windows desktop, o just_audio não possui 
-    // suporte nativo out-of-the-box e derruba o processo. Isolamos essa checagem!
-    if (!kIsWeb && Platform.isWindows) {
-      debugPrint("Música desativada no Windows Desktop para evitar incompatibilidade nativa.");
-      return;
-    }
-
+    // WidgetsBinding garante que a árvore de widgets (e o DevicePreview) estejam montados antes do som começar
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
+        // Configura o loop infinito nativo de forma limpa
         await _musicPlayer.setLoopMode(LoopMode.one);
+        
+        // Define o asset de áudio do jogo
         await _musicPlayer.setAsset('assets/audio/background_music.mp3');
         await _musicPlayer.setVolume(_volume);
+        
+        // Inicia a reprodução em background
         await _musicPlayer.play();
       } catch (e) {
-        debugPrint("Erro ao inicializar áudio com just_audio: $e");
+        debugPrint("Erro ao inicializar áudio: $e");
       }
     });
   }
 
   void alternarMusica(bool ligada) {
     _isMusicOn = ligada;
-    if (!kIsWeb && Platform.isWindows) return; // Ignora se for Windows
-
     try {
       if (ligada) {
         _musicPlayer.setVolume(_volume);
@@ -49,14 +43,12 @@ class AudioService {
         _musicPlayer.pause();
       }
     } catch (e) {
-      debugPrint("Erro ao pausar música: $e");
+      debugPrint("Erro ao alternar música: $e");
     }
   }
 
   void definirVolume(double novoVolume) {
     _volume = novoVolume.clamp(0.0, 1.0);
-    if (!kIsWeb && Platform.isWindows) return; // Ignora se for Windows
-
     try {
       if (_isMusicOn) {
         _musicPlayer.setVolume(_volume);
