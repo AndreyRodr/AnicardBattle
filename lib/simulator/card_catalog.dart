@@ -48,6 +48,7 @@ class CardCatalog {
         imagePath: 'assets/images/cards/default.png',
         pack: 'desconhecido',
         isAlpha: false,
+        audioPath: '',
         instintoAssassino: 0,
         forca: 0,
         peso: 0,

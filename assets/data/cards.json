@@ -13,7 +13,8 @@
         "agilidade": 25,
         "media": 33
       },
-      "isAlpha": false
+      "isAlpha": false,
+      "audioPath": "audio/animal_sounds/mata.mp3"
     },
     {
       "id": 2,
@@ -21,6 +22,7 @@
       "image": "assets/images/cards/onca-pintada.png",
       "pack": "floresta_amazonica",
       "isAlpha": true,
+      "audioPath": "audio/animal_sounds/rugido.wav",
       "attributes": {
         "instintoAssassino": 95,
         "forca": 85,
@@ -36,6 +38,7 @@
       "image": "assets/images/cards/arara-azul.png",
       "pack": "floresta_amazonica",
       "isAlpha": false,
+      "audioPath": "audio/animal_sounds/asas.wav",
       "attributes": {
         "instintoAssassino": 5,
         "forca": 20,
@@ -51,6 +54,7 @@
       "image": "assets/images/cards/jacare-acu.png",
       "pack": "floresta_amazonica",
       "isAlpha": false,
+      "audioPath": "audio/animal_sounds/cobra.wav",
       "attributes": {
         "instintoAssassino": 85,
         "forca": 88,
@@ -66,6 +70,7 @@
       "image": "assets/images/cards/sucuri.png",
       "pack": "floresta_amazonica",
       "isAlpha": false,
+      "audioPath": "audio/animal_sounds/cobra.wav",
       "attributes": {
         "instintoAssassino": 80,
         "forca": 85,
@@ -80,6 +85,7 @@
       "name": "Leão",
       "image": "assets/images/cards/leao.png",
       "pack": "savana_africana",
+      "audioPath": "audio/animal_sounds/rugido.wav",
       "isAlpha": true,
       "attributes": {
         "instintoAssassino": 90,
@@ -94,6 +100,7 @@
       "id": 7,
       "name": "Elefante Africano",
       "image": "assets/images/cards/elefante.png",
+      "audioPath": "audio/animal_sounds/pegada_pesada.wav",
       "pack": "savana_africana",
       "isAlpha": false,
       "attributes": {
@@ -110,6 +117,7 @@
       "name": "Guepardo",
       "image": "assets/images/cards/guepardo.png",
       "pack": "savana_africana",
+      "audioPath": "audio/animal_sounds/rugido.wav",
       "isAlpha": false,
       "attributes": {
         "instintoAssassino": 80,
@@ -125,6 +133,7 @@
       "name": "Rinoceronte",
       "image": "assets/images/cards/rinoceronte.png",
       "pack": "savana_africana",
+      "audioPath": "audio/animal_sounds/pegada_pesada.wav",
       "isAlpha": false,
       "attributes": {
         "instintoAssassino": 60,
@@ -139,6 +148,7 @@
       "id": 10,
       "name": "Hiena",
       "image": "assets/images/cards/hiena.png",
+      "audioPath": "audio/animal_sounds/rugido.wav",
       "pack": "savana_africana",
       "isAlpha": false,
       "attributes": {
@@ -154,6 +164,7 @@
       "id": 11,
       "name": "Urso Polar",
       "image": "assets/images/cards/urso-polar.png",
+      "audioPath": "audio/animal_sounds/rugido.wav",
       "pack": "tundra_polar",
       "isAlpha": true,
       "attributes": {
@@ -169,6 +180,7 @@
       "id": 12,
       "name": "Lobo do Ártico",
       "image": "assets/images/cards/lobo-artico.png",
+      "audioPath": "audio/animal_sounds/rugido.wav",
       "pack": "tundra_polar",
       "isAlpha": false,
       "attributes": {
@@ -184,6 +196,7 @@
       "id": 13,
       "name": "Pinguim-Imperador",
       "image": "assets/images/cards/pinguim.png",
+      "audioPath": "audio/animal_sounds/water_splash.wav",
       "pack": "tundra_polar",
       "isAlpha": false,
       "attributes": {
@@ -199,6 +212,7 @@
       "id": 14,
       "name": "Morsa",
       "image": "assets/images/cards/morsa.png",
+      "audioPath": "audio/animal_sounds/water_splash.wav",
       "pack": "tundra_polar",
       "isAlpha": false,
       "attributes": {
@@ -214,6 +228,7 @@
       "id": 15,
       "name": "Raposa-do-Ártico",
       "image": "assets/images/cards/raposa-artico.png",
+      "audioPath": "audio/animal_sounds/mata.mp3",
       "pack": "tundra_polar",
       "isAlpha": false,
       "attributes": {
@@ -229,6 +244,7 @@
       "id": 16,
       "name": "Aranha-Armadeira",
       "image": "assets/images/cards/aranha-armadeira.png",
+      "audioPath": "audio/animal_sounds/mata.mp3",
       "pack": "floresta_amazonica",
       "isAlpha": false,
       "attributes": {
@@ -244,6 +260,7 @@
       "id": 17,
       "name": "Piranha-Vermelha",
       "image": "assets/images/cards/piranha-vermelha.png",
+      "audioPath": "audio/animal_sounds/water_splash.wav",
       "pack": "floresta_amazonica",
       "isAlpha": false,
       "attributes": {
@@ -259,6 +276,7 @@
       "id": 18,
       "name": "Boto-Cor-de-Rosa",
       "image": "assets/images/cards/boto-cor-de-rosa.png",
+      "audioPath": "audio/animal_sounds/water_splash.wav",
       "pack": "floresta_amazonica",
       "isAlpha": false,
       "attributes": {

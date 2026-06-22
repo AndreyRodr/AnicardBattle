@@ -4,6 +4,7 @@ class CardModel {
   final String imagePath;
   final String pack;
   final bool isAlpha;
+  final String audioPath;
   
   // Atributos
   final int instintoAssassino;
@@ -25,6 +26,7 @@ class CardModel {
     required this.inteligencia,
     required this.agilidade,
     required this.media,
+    required this.audioPath,
   });
 
   factory CardModel.fromJson(Map<String, dynamic> json) {
@@ -42,6 +44,7 @@ class CardModel {
       inteligencia: attributes['inteligencia'] ?? 0,
       agilidade: attributes['agilidade'] ?? 0,
       media: attributes['media'] ?? 0,
+      audioPath: json['audioPath'] ?? '',
     );
   }
 

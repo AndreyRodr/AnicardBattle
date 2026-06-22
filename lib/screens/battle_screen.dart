@@ -8,6 +8,7 @@ import '../models/card_model.dart';
 import '../widgets/card_widget.dart';
 import '../services/battle_service.dart';
 import '../utils/battle_helpers.dart';
+import '../utils/sound_manager.dart';
 import '../widgets/battle_ui_components.dart';
 
 // 🌟 Enum de controle de dificuldades
@@ -192,11 +193,23 @@ class _BattleScreenState extends State<BattleScreen> {
   }
 
   Future<void> _resolverRodada() async {
+    print("🔍 ENTROU NA FUNÇÃO _resolverRodada!");
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
+    print("🔍 PASSOU PELO PRIMEIRO DELAY! Mounted: $mounted");
     int valorJogador = BattleHelpers.obterValorAtributo(_playerCurrentCard!, _atributoSorteado);
     int valorOponente = BattleHelpers.obterValorAtributo(_opponentCurrentCard!, _atributoSorteado);
+
+    print("🃏 Áudio na carta do Jogador: '${_playerCurrentCard!.audioPath}'");
+    print("🃏 Áudio na carta do Oponente: '${_opponentCurrentCard!.audioPath}'");
+
+    String? audioParaTocar;
+    if (valorJogador > valorOponente) {
+      audioParaTocar = _playerCurrentCard!.audioPath;
+    } else if (valorOponente > valorJogador) {
+      audioParaTocar = _opponentCurrentCard!.audioPath;
+    }
 
     setState(() {
       if (valorJogador > valorOponente) {
@@ -212,6 +225,15 @@ class _BattleScreenState extends State<BattleScreen> {
         _resultadoRoundCor = Colors.grey;
       }
     });
+
+    print("🔍 Valor do áudio capturado: '$audioParaTocar'");
+
+    if (audioParaTocar != null && audioParaTocar!.isNotEmpty) {
+      SoundManager.reproduzirSomVitoria(audioParaTocar!);
+    } else {
+      print("⚠️ Som não foi chamado porque a string é nula ou vazia!");
+    }
+
 
     await Future.delayed(const Duration(milliseconds: 1500));
     if (!mounted) return;

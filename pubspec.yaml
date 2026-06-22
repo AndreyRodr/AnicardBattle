@@ -44,6 +44,7 @@ dependencies:
   flip_card: ^0.7.0
   just_audio: ^0.9.44
   just_audio_windows: ^0.2.2
+  audioplayers: ^6.7.1
 
 dev_dependencies:
   flutter_test:
@@ -78,6 +79,7 @@ flutter:
     - assets/images/packs/
     - assets/data/cards.json
     - assets/audio/
+    - assets/audio/animal_sounds/
     - assets/audio/background_music.mp3
     - .env
   # An image asset can refer to one or more resolution-specific "variants", see
