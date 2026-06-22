@@ -26,7 +26,7 @@ class AuthService {
       await _firestore.collection('users').doc(uid).set({
         'nomeUsuario': nomeUsuario.trim(),
         'email': email.trim(),
-        'moedas': 1000,
+        'moedas': 100,
         
         // Você pode mudar esses números para os IDs das cartas "padrão" do seu jogo
         'cartasEquipadas': [1, 2, 3, 4, 5, 6, 7, 8, 9], 

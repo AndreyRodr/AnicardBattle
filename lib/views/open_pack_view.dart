@@ -106,24 +106,34 @@ class _OpenPackViewState extends State<OpenPackView> {
 
         List<String> temporariaString = idsParaInventario.map((id) => id.toString()).toList();
 
+        // Verifica se a carta já existe no inventário, no deck ou se foi sorteada neste mesmo booster
         bool ehRepetida = inventarioString.contains(carta.id.toString()) || 
                           equipadasString.contains(carta.id.toString()) ||
                           temporariaString.contains(carta.id.toString());
         
         statusRepetidas.add(ehRepetida);
-        idsParaInventario.add(carta.id);
+        
+        // 🌟 FIX CORE: Só insere o ID no inventário se a carta NÃO for repetida!
+        if (!ehRepetida) {
+          idsParaInventario.add(carta.id);
+        }
       }
 
       _cartasSorteadasTemp = cartasSorteadas;
       _statusRepetidasTemp = statusRepetidas;
 
-      await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
+      // Monta o mapa de atualização dinamicamente
+      Map<String, dynamic> dadosAtualizacao = {
         'pacotes.$currentPackId': FieldValue.increment(-1),
-        'inventario': FieldValue.arrayUnion(idsParaInventario),
-      });
+      };
 
-      // 🌟 O GATILHO COMPATIVEL COM AS MISSÕES DIÁRIAS/SEMANAIS:
-      // Executa apenas se a gravação do pacote foi um sucesso completo
+      // Só executa o arrayUnion se o jogador de fato obteve alguma carta nova
+      if (idsParaInventario.isNotEmpty) {
+        dadosAtualizacao['inventario'] = FieldValue.arrayUnion(idsParaInventario);
+      }
+
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).update(dadosAtualizacao);
+
       try {
         await QuestService().atualizarProgressoMissao(uid: user.uid, acaoId: 'packs');
       } catch (e) {
@@ -295,18 +305,14 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
     if (_cardIndex == 2 && !_isFront) Navigator.of(context).pop();
   }
 
-  // 🌟 FUNÇÃO CENTRAL DE INTERAÇÃO NA TELA INTEIRA
   void _lidarComToqueNaTela() {
     if (_animandoTransicao) return;
 
     if (_isFront) {
-      // Se a carta está fechada, vira para revelar o animal
       _revelarCarta();
     } else if (widget.repetidas[_cardIndex] && !_mostrarMoeda) {
-      // Se a carta está aberta e é repetida, converte em moedas
       _converterRepetidaEAvancar();
     } else {
-      // Se for a última carta concluída, fecha o dialog
       _fecharPacoteNaUltimaCarta();
     }
   }
@@ -363,9 +369,7 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
     final cartaAtual = widget.cartas[_cardIndex];
     final ehRepetida = widget.repetidas[_cardIndex];
     
-    
     return GestureDetector(
-      // 🌟 MUDANÇA: Agora o detector de gestos chama a função central mapeando cliques em qualquer parte vazia da tela
       onTap: _lidarComToqueNaTela,
       behavior: HitTestBehavior.opaque,
       child: Material(
@@ -377,7 +381,6 @@ class _PackOpeningDialogState extends State<_PackOpeningDialog> {
               Text("CARTA ${_cardIndex + 1} DE 3", style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.5, shadows: [Shadow(color: Colors.black87, blurRadius: 4, offset: Offset(2, 2))])),
               const SizedBox(height: 24),
               
-              // O Card em si também aceita cliques para rodar a lógica sem travar
               GestureDetector(
                 onTap: _lidarComToqueNaTela,
                 child: SizedBox(
