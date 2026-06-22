@@ -63,10 +63,4 @@ class BotEngine {
     return cartaMaisForte;
   }
 
-  /// 🌟 EXTRA: Se for o turno do Bot escolher o atributo, o Bot Difícil usa esta função
-  String escolherMelhorAtributo(CardModel carta) {
-    // Exemplo de lógica: o bot analisa a carta dele e descobre qual o maior nome de atributo cadastrado
-    // Retorne a String do atributo (ex: 'forca', 'velocidade', 'peso') que tiver o maior valor numérico na carta.
-    return carta.getMelhorAtributo(); 
-  }
 }

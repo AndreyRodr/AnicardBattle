@@ -85,10 +85,12 @@ class _BattleScreenState extends State<BattleScreen> {
     if (_currentUid == null) return;
 
     try {
+      // Carrega o deck customizado do duelista jogador
       List<CardModel> cartasJogador = await _battleService.buscarCartasEquipadas(_currentUid!);
       
-      // Carrega o deck do Bot padrão da sua base
-      List<CardModel> cartasOponente = await _battleService.buscarCartasEquipadas("d9e8ZKsmAYM5EqNPgWMFTxMeEBY2");
+      // 🌟 DECK DO BOT ATUALIZADO:
+      // Agora ele invoca o método temático passando a dificuldade vinda da escolha do menu!
+      List<CardModel> cartasOponente = await _battleService.gerarDeckTematicoBot(widget.dificuldade.name);
 
       Map<String, String> cosmeticosJogador = await _battleService.buscarCosmeticosEquipados(_currentUid!);
 
@@ -98,6 +100,8 @@ class _BattleScreenState extends State<BattleScreen> {
         _iconeVidaEquipadoId = cosmeticosJogador['iconeVida'] ?? 'vida_1';
 
         _playerDeck = List.from(cartasJogador)..shuffle();
+        
+        // Clona e embaralha o deck temático para as compras de round do Bot
         _opponentDeck = List.from(cartasOponente)..shuffle();
 
         for (int i = 0; i < 3; i++) {
