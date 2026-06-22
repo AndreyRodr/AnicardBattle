@@ -54,7 +54,7 @@
       "image": "assets/images/cards/jacare-acu.png",
       "pack": "floresta_amazonica",
       "isAlpha": false,
-      "audioPath": "audio/animal_sounds/cobra.wav",
+      "audioPath": "audio/animal_sounds/rugido.wav",
       "attributes": {
         "instintoAssassino": 85,
         "forca": 88,
