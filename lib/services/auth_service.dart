@@ -29,7 +29,7 @@ class AuthService {
         'moedas': 100,
         
         // Você pode mudar esses números para os IDs das cartas "padrão" do seu jogo
-        'cartasEquipadas': [1, 2, 3, 4, 5, 6, 7, 8, 9], 
+        'cartasEquipadas': [1, 2, 3, 7, 8, 9, 12, 13, 14], 
         'inventario': [],
 
         'cosmeticosEquipados': {
