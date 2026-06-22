@@ -2,6 +2,7 @@ import 'package:anicard/widgets/tutorial_dialog.dart';
 import 'package:flutter/material.dart';
 import '../services/audio_service.dart';
 import 'interactive_toggle_button.dart';
+import '../utils/sound_manager.dart';
 
 class SettingsDialog extends StatefulWidget {
   final bool initialSoundEffectsOn;
@@ -9,6 +10,8 @@ class SettingsDialog extends StatefulWidget {
   final ValueChanged<bool> onSoundEffectsChanged;
   final ValueChanged<bool> onMusicChanged;
   final ValueChanged<double> onMusicVolumeChanged;
+  final double initialSoundVolume;
+  final ValueChanged<double> onSoundVolumeChanged;
 
   const SettingsDialog({
     super.key,
@@ -17,6 +20,8 @@ class SettingsDialog extends StatefulWidget {
     required this.onSoundEffectsChanged,
     required this.onMusicChanged,
     required this.onMusicVolumeChanged,
+    required this.initialSoundVolume,
+    required this.onSoundVolumeChanged,
   });
 
   @override
@@ -33,7 +38,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     super.initState();
     _soundEffectsOn = widget.initialSoundEffectsOn;
     _musicOn = widget.initialMusicOn;
-    
+
     try {
       _musicVolume = AudioService().volume.clamp(0.0, 1.0);
     } catch (_) {
@@ -73,8 +78,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 const Text(
                   'Configurações',
                   style: TextStyle(
-                    color: Colors.white, 
-                    fontSize: 24, 
+                    color: Colors.white,
+                    fontSize: 24,
                     fontWeight: FontWeight.w900,
                     decoration: TextDecoration.none,
                   ),
@@ -87,53 +92,72 @@ class _SettingsDialogState extends State<SettingsDialog> {
                       color: const Color(0xFF2E5E35),
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: const Icon(Icons.close, color: Colors.white, size: 20),
+                    child: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                 ),
               ],
             ),
 
-           const SizedBox(height: 16),
-                const Divider(color: Colors.white24, height: 1),
-                const SizedBox(height: 16),
+            const SizedBox(height: 16),
+            const Divider(color: Colors.white24, height: 1),
+            const SizedBox(height: 16),
 
-                // 🌟 NOVA SEÇÃO: BOTÃO OPCIONAL PARA REVER TUTORIAL
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // 🌟 NOVA SEÇÃO: BOTÃO OPCIONAL PARA REVER TUTORIAL
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'TUTORIAL',
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          'Rever regras básicas do jogo',
-                          style: TextStyle(color: Colors.white54, fontSize: 11),
-                        ),
-                      ],
+                    Text(
+                      'TUTORIAL',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2E5E35),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      ),
-                      onPressed: () {
-                        Navigator.pop(context); // Fecha o menu de configurações antes
-                        showDialog(
-                          context: context,
-                          builder: (context) => const TutorialDialog(),
-                        );
-                      },
-                      child: const Text(
-                        'VER',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
-                      ),
+                    Text(
+                      'Rever regras básicas do jogo',
+                      style: TextStyle(color: Colors.white54, fontSize: 11),
                     ),
                   ],
                 ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2E5E35),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(
+                      context,
+                    ); // Fecha o menu de configurações antes
+                    showDialog(
+                      context: context,
+                      builder: (context) => const TutorialDialog(),
+                    );
+                  },
+                  child: const Text(
+                    'VER',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 24),
 
             // 1. Linha de Efeitos Sonoros
@@ -141,25 +165,34 @@ class _SettingsDialogState extends State<SettingsDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Efeitos sonoros:', 
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  'Efeitos sonoros:',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 // 🌟 CORREÇÃO: Força uma largura máxima para o botão não sumir da Row
                 SizedBox(
-                  width: 130, 
+                  width: 130,
                   child: InteractiveToggleButton(
                     isOn: _soundEffectsOn,
                     onTap: () {
                       setState(() {
                         _soundEffectsOn = !_soundEffectsOn;
                       });
+
+                      // 👇 1. ATUALIZA O GERENCIADOR DE ÁUDIO EM TEMPO REAL
+                      SoundManager.setEfeitosAtivos(_soundEffectsOn);
+
+                      // 2. Executa o callback existente que você já tinha configurado
                       widget.onSoundEffectsChanged(_soundEffectsOn);
                     },
                   ),
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
             const Divider(color: Colors.white12, height: 1),
             const SizedBox(height: 16),
@@ -169,8 +202,12 @@ class _SettingsDialogState extends State<SettingsDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'Música de fundo:', 
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  'Música de fundo:',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 // 🌟 CORREÇÃO: Mesma estrutura segura de tamanho
                 SizedBox(
@@ -202,26 +239,34 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     Row(
                       children: [
                         Icon(
-                          _musicOn && _musicVolume > 0 ? Icons.volume_up : Icons.volume_off, 
-                          color: Colors.white70, 
-                          size: 20
+                          _musicOn && _musicVolume > 0
+                              ? Icons.volume_up
+                              : Icons.volume_off,
+                          color: Colors.white70,
+                          size: 20,
                         ),
                         const SizedBox(width: 8),
                         const Text(
-                          'Volume da Música:', 
-                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                          'Volume da Música:',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
                     Text(
                       '${(_musicVolume * 100).toInt()}%',
-                      style: const TextStyle(color: Colors.amber, fontSize: 14, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.amber,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                
-               
 
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
@@ -229,26 +274,100 @@ class _SettingsDialogState extends State<SettingsDialog> {
                     inactiveTrackColor: const Color(0xFF2E5E35),
                     trackHeight: 6.0,
                     thumbColor: Colors.amber,
-                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10.0),
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 10.0,
+                    ),
                     overlayColor: Colors.amber.withOpacity(0.2),
-                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 20.0),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 20.0,
+                    ),
                   ),
                   child: Slider(
                     value: _musicVolume.clamp(0.0, 1.0),
                     min: 0.0,
                     max: 1.0,
-                    onChanged: _musicOn // 🌟 Opcional: Só deixa arrastar se a música estiver ligada
+                    onChanged:
+                        _musicOn // 🌟 Opcional: Só deixa arrastar se a música estiver ligada
                         ? (newValue) {
                             setState(() {
                               _musicVolume = newValue;
                             });
                             widget.onMusicVolumeChanged(newValue);
                           }
-                        : null, 
+                        : null,
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 8),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(
+                          widget.initialSoundEffectsOn && widget.initialSoundVolume > 0
+                              ? Icons.volume_up
+                              : Icons.volume_off,
+                          color: Colors.white70,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Volume dos Efeitos:',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Text(
+                      '${(widget.initialSoundVolume * 100).toInt()}%',
+                      style: const TextStyle(
+                        color: Colors.amber,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                
+                // 🌟 CORREÇÃO 1: Espaçamento vertical idêntico ao da música
+                const SizedBox(height: 8),
+                
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    activeTrackColor: Colors.amber,
+                    inactiveTrackColor: const Color(0xFF2E5E35),
+                    trackHeight: 6.0,
+                    thumbColor: Colors.amber,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 10.0,
+                    ),
+                    overlayColor: Colors.amber.withOpacity(0.2),
+                    overlayShape: const RoundSliderOverlayShape(
+                      overlayRadius: 20.0,
+                    ),
+                  ),
+                  child: Slider(
+                    // Garante que o valor nunca fuja do limite de 0.0 a 1.0 para não quebrar o layout
+                    value: widget.initialSoundVolume.clamp(0.0, 1.0),
+                    min: 0.0,
+                    max: 1.0,
+                    // 🌟 CORREÇÃO 2: Trava o arrasto se os efeitos estiverem desligados na chave principal
+                    onChanged: widget.initialSoundEffectsOn 
+                        ? widget.onSoundVolumeChanged 
+                        : null,
+                  ),
+                )
+              ],
+            ),
+            const Divider(color: Colors.white10, height: 24),
           ],
         ),
       ),

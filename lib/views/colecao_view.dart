@@ -355,13 +355,13 @@ class _ColecaoViewState extends State<ColecaoView> {
 
         if (_categoriaAtual == 'arena') {
           previewVisual = Container(
-            height: 55,
+            height: 200,
             width: double.infinity,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(6),
               image: DecorationImage(
                 image: AssetImage(CosmeticHelpers.obterCaminhoArena(idItemAtual)),
-                fit: BoxFit.cover,
+                fit: BoxFit.contain,
               ),
             ),
           );

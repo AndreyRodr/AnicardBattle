@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:anicard/services/audio_service.dart';
+import 'package:anicard/utils/sound_manager.dart';
 import 'package:anicard/widgets/tutorial_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -13,7 +14,8 @@ import '../widgets/custom_bottom_nav_bar.dart';
 import '../widgets/settings_dialog.dart';
 import '../widgets/ranking_dialog.dart';
 import '../views/open_pack_view.dart';
-import '../widgets/quests_dialog.dart'; 
+import '../widgets/quests_dialog.dart';
+import '../utils/dialog_helpers.dart';
 
 class AniCardScreen extends StatefulWidget {
   const AniCardScreen({super.key});
@@ -24,7 +26,7 @@ class AniCardScreen extends StatefulWidget {
 
 class _AniCardScreenState extends State<AniCardScreen> {
   int _selectedIndex = 2; // Começa na aba da Batalha
-  bool _soundEffectsOn = true;
+  bool _soundEffectsOn = SoundManager.efeitosSonorosAtivos;
   bool _isSettingsOpen = false;
   bool _tutorialVerificado = false;
 
@@ -41,6 +43,8 @@ class _AniCardScreenState extends State<AniCardScreen> {
 
     setState(() {
       _isSettingsOpen = true; 
+      // Garante que a variável local está idêntica ao estado do SoundManager antes de abrir
+      _soundEffectsOn = SoundManager.efeitosSonorosAtivos;
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -61,10 +65,18 @@ class _AniCardScreenState extends State<AniCardScreen> {
               return SettingsDialog(
                 initialSoundEffectsOn: _soundEffectsOn, 
                 initialMusicOn: musicaLigada,
+                initialSoundVolume: SoundManager.volumeEfeitos, 
+                onSoundVolumeChanged: (volume) {
+                  SoundManager.definirVolumeEfeitos(volume);
+                  setDialogState(() {}); // Atualiza o Slider dentro do pop-up
+                },
                 onSoundEffectsChanged: (value) {
                   setState(() {
                     _soundEffectsOn = value;
                   });
+                  
+                  // 👇 ATUALIZA O GERENCIADOR DE ÁUDIO EM TEMPO REAL
+                  SoundManager.setEfeitosAtivos(value);
                 },
                 onMusicChanged: (value) {
                   try {
@@ -203,15 +215,17 @@ class _AniCardScreenState extends State<AniCardScreen> {
                           Row(
                             children: [
                               // Botão de Configurações
-                              GestureDetector(
-                                onTap: () => _showSettingsDialog(context),
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.6),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.settings, color: Colors.grey, size: 28),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.5),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.settings, color: Colors.white70, size: 28),
+                                  onPressed: () => DialogHelpers.mostrarSettings(context, onDialogClosed: () {
+                                    setState(() {}); 
+                                  }),
+                                  tooltip: 'Configurações',
                                 ),
                               ),
                               const SizedBox(width: 10),
