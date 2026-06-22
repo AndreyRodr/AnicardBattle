@@ -1,3 +1,4 @@
+import 'package:anicard/widgets/tutorial_dialog.dart';
 import 'package:flutter/material.dart';
 import '../services/audio_service.dart';
 import 'interactive_toggle_button.dart';
@@ -91,6 +92,48 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 ),
               ],
             ),
+
+           const SizedBox(height: 16),
+                const Divider(color: Colors.white24, height: 1),
+                const SizedBox(height: 16),
+
+                // 🌟 NOVA SEÇÃO: BOTÃO OPCIONAL PARA REVER TUTORIAL
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'TUTORIAL',
+                          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          'Rever regras básicas do jogo',
+                          style: TextStyle(color: Colors.white54, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2E5E35),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(context); // Fecha o menu de configurações antes
+                        showDialog(
+                          context: context,
+                          builder: (context) => const TutorialDialog(),
+                        );
+                      },
+                      child: const Text(
+                        'VER',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ),
+                  ],
+                ),
             const SizedBox(height: 24),
 
             // 1. Linha de Efeitos Sonoros
@@ -178,6 +221,8 @@ class _SettingsDialogState extends State<SettingsDialog> {
                 ),
                 const SizedBox(height: 8),
                 
+               
+
                 SliderTheme(
                   data: SliderTheme.of(context).copyWith(
                     activeTrackColor: Colors.amber,

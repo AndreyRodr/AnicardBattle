@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:anicard/services/audio_service.dart';
+import 'package:anicard/widgets/tutorial_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -25,6 +26,7 @@ class _AniCardScreenState extends State<AniCardScreen> {
   int _selectedIndex = 2; // Começa na aba da Batalha
   bool _soundEffectsOn = true;
   bool _isSettingsOpen = false;
+  bool _tutorialVerificado = false;
 
   final List<Widget> _telas = [
     const ProfileView(), 
@@ -119,6 +121,21 @@ class _AniCardScreenState extends State<AniCardScreen> {
           final data = snapshot.data!.data() as Map<String, dynamic>;
           moedasAtuais = data['moedas'] ?? 0;
           trofeusAtuais = data['trofeus'] ?? 0;
+
+          // 🌟 INJEÇÃO DA CHECAGEM AUTOMÁTICA DO TUTORIAL OBRIGATÓRIO
+          final bool tutorialVisto = data['tutorialVisto'] ?? false;
+          if (!tutorialVisto && !_tutorialVerificado) {
+            _tutorialVerificado = true; // Muda a trava para não abrir em loops infinitos
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                showDialog(
+                  context: context,
+                  barrierDismissible: false, // Força ele a concluir clicando em Avançar/Jogar
+                  builder: (context) => const TutorialDialog(),
+                );
+              }
+            });
+          }
 
           // 🌟 LÓGICA DE CHECAGEM DOS PRÊMIOS DISPONÍVEIS
           // 1. Varre missões diárias prontas para resgate
