@@ -113,11 +113,35 @@ class _AniCardScreenState extends State<AniCardScreen> {
       builder: (context, snapshot) {
         int moedasAtuais = 0;
         int trofeusAtuais = 0;
+        bool mostrarBadgeNotificacao = false; // 🌟 Controle do ponto vermelho
 
         if (snapshot.hasData && snapshot.data!.exists) {
           final data = snapshot.data!.data() as Map<String, dynamic>;
           moedasAtuais = data['moedas'] ?? 0;
           trofeusAtuais = data['trofeus'] ?? 0;
+
+          // 🌟 LÓGICA DE CHECAGEM DOS PRÊMIOS DISPONÍVEIS
+          // 1. Varre missões diárias prontas para resgate
+          final listasDiarias = data['missoesDiarias'] as List<dynamic>? ?? [];
+          bool temDiariaPronta = listasDiarias.any((m) => 
+            (m['progresso'] ?? 0) >= (m['meta'] ?? 1) && !(m['coletado'] ?? false));
+
+          // 2. Varre missões semanais prontas para resgate
+          final listasSemanais = data['missoesSemanais'] as List<dynamic>? ?? [];
+          bool temSemanalPronta = listasSemanais.any((m) => 
+            (m['progresso'] ?? 0) >= (m['meta'] ?? 1) && !(m['coletado'] ?? false));
+
+          // 3. Checa se o calendário diário pode ser coletado hoje
+          final dadosDiarios = data['recompensaDiaria'] as Map<String, dynamic>? ?? {};
+          final String ultimoColetado = dadosDiarios['ultimoLoginColetado'] ?? "";
+          final hoje = DateTime.now();
+          final hojeStr = "${hoje.year}-${hoje.month.toString().padLeft(2, '0')}-${hoje.day.toString().padLeft(2, '0')}";
+          bool loginDiarioDisponivel = ultimoColetado != hojeStr;
+
+          // Ativa o badge se pelo menos um critério for verdadeiro
+          if (temDiariaPronta || temSemanalPronta || loginDiarioDisponivel) {
+            mostrarBadgeNotificacao = true;
+          }
         }
 
         return Scaffold(
@@ -212,27 +236,33 @@ class _AniCardScreenState extends State<AniCardScreen> {
                           // 🟡 LADO DIREITO: Missões colado com o Saldo de Moedas
                           Row(
                             children: [
-                              // Ícone de Missões/Recompensas Diárias
-                              GestureDetector(
-                                onTap: () => _abrirMenuMissoes(context),
-                                child: Container(
-                                  padding: const EdgeInsets.all(9), // Ajustado levemente o padding para equilibrar o tamanho
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF522121),
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: Colors.amber.withOpacity(0.5), width: 1.5),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.3),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 3),
-                                      )
-                                    ],
+                              // 🌟 Ícone de Missões envolvido com o componente Badge nativo
+                              Badge(
+                                isLabelVisible: mostrarBadgeNotificacao,
+                                backgroundColor: const Color(0xFFC72424), // Vermelho de alerta limpo
+                                smallSize: 11, // Pontinho vermelho sutil e visível
+                                offset: const Offset(-1, 1),
+                                child: GestureDetector(
+                                  onTap: () => _abrirMenuMissoes(context),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(9), 
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFF522121),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.amber.withOpacity(0.5), width: 1.5),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.3),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 3),
+                                        )
+                                      ],
+                                    ),
+                                    child: const Icon(Icons.assignment_turned_in, color: Colors.amber, size: 24),
                                   ),
-                                  child: const Icon(Icons.assignment_turned_in, color: Colors.amber, size: 24),
                                 ),
                               ),
-                              const SizedBox(width: 10), // Espaço perfeito entre os dois blocos monetários
+                              const SizedBox(width: 10), 
                               
                               // Indicador de moedas existente
                               Container(
