@@ -38,8 +38,8 @@ class MainOfferWidget extends StatelessWidget {
                 child: Image.asset(
                   imagePath, 
                   width: double.infinity,
-                  height: 230,
-                  fit: BoxFit.cover,
+                  height: 330,
+                  fit: BoxFit.contain,
                 ),
               ),
               Padding(
@@ -389,7 +389,7 @@ class _StoreViewState extends State<StoreView> {
           
           Center(
             child: MainOfferWidget(
-              imagePath: "assets/images/oferta.jpeg",
+              imagePath: "assets/images/packs/amazon_pack.png",
               title: "Combo: 3 Pacotes Floresta",
               oldPrice: '1050',
               newPrice: '800', 
