@@ -15,7 +15,7 @@ class CollectionService {
       if (categoria == 'arena') {
         chaveMap = 'arena';
       } else if (categoria == 'borda') {
-        chaveMap = 'borda';
+        chaveMap = 'bordaCarta';
       } else {
         chaveMap = 'iconeVida';
       }

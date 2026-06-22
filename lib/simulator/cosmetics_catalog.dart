@@ -19,12 +19,12 @@ class CosmeticsCatalog {
         "raridade": "Lendária",
         "isBloqueadoPadrao": false
       },
-      {
-        "id": "arena_4",
-        "nome": "Arena de Fogo",
-        "raridade": "Rara",
-        "isBloqueadoPadrao": true
-      },
+      // {
+      //   "id": "arena_4",
+      //   "nome": "Arena de Fogo",
+      //   "raridade": "Rara",
+      //   "isBloqueadoPadrao": true
+      // },
     ],
     "borda": [
       {
@@ -45,12 +45,12 @@ class CosmeticsCatalog {
         "raridade": "Épica",
         "isBloqueadoPadrao": false
       },
-      {
-        "id": "borda_4",
-        "nome": "Ouro Real",
-        "raridade": "Lendária",
-        "isBloqueadoPadrao": true
-      },
+      // {
+      //   "id": "borda_4",
+      //   "nome": "Ouro Real",
+      //   "raridade": "Lendária",
+      //   "isBloqueadoPadrao": true
+      // },
     ],
     "vida": [
       {
@@ -71,12 +71,12 @@ class CosmeticsCatalog {
         "raridade": "Lendária",
         "isBloqueadoPadrao": false
       },
-      {
-        "id": "vida_4",
-        "nome": "Chama Ardente",
-        "raridade": "Rara",
-        "isBloqueadoPadrao": true
-      },
+      // {
+      //   "id": "vida_4",
+      //   "nome": "Chama Ardente",
+      //   "raridade": "Rara",
+      //   "isBloqueadoPadrao": true
+      // },
     ]
   };
 
