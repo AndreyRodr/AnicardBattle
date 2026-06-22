@@ -9,6 +9,7 @@ import '../widgets/card_widget.dart';
 import '../services/battle_service.dart';
 import '../utils/battle_helpers.dart';
 import '../utils/sound_manager.dart';
+import '../utils/dialog_helpers.dart';
 import '../widgets/battle_ui_components.dart';
 
 // 🌟 Enum de controle de dificuldades
@@ -537,27 +538,47 @@ class _BattleScreenState extends State<BattleScreen> {
                     child: Stack(
                       children: [
                         Positioned(
-                          bottom: 25, right: 16,
+                          bottom: 25,
+                          right: 16,
                           child: LifeHearts(activeLives: _opponentLives, iconeId: 'vida_1'),
                         ),
                         if (_opponentDiscard.isNotEmpty)
                           Positioned(
-                            top: 175, left: 16,
-                            child: CardWidget(card: _opponentDiscard.last, scale: 0.4, isFacedown: false, bordaEquipadaId : _bordaCartaEquipadaId,),
+                            top: 175,
+                            left: 16,
+                            child: CardWidget(
+                              card: _opponentDiscard.last,
+                              scale: 0.4,
+                              isFacedown: false,
+                              bordaEquipadaId: _bordaCartaEquipadaId,
+                            ),
                           ),
                         if (_opponentDeck.isNotEmpty)
                           Positioned(
-                            top: 175, right: 16,
-                            child: CardWidget(card: _opponentDeck.first, scale: 0.4, isFacedown: true, bordaEquipadaId : _bordaCartaEquipadaId,),
+                            top: 175,
+                            right: 16,
+                            child: CardWidget(
+                              card: _opponentDeck.first,
+                              scale: 0.4,
+                              isFacedown: true,
+                              bordaEquipadaId: _bordaCartaEquipadaId,
+                            ),
                           ),
                         Positioned(
-                          top: 0, left: 0, right: 0,
+                          top: 0,
+                          left: 0,
+                          right: 0,
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: List.generate(_opponentHand.length, (index) {
                               return Align(
                                 widthFactor: 0.7,
-                                child: CardWidget(card: _opponentHand[index], scale: 0.5, isFacedown: true, bordaEquipadaId : _bordaCartaEquipadaId,),
+                                child: CardWidget(
+                                  card: _opponentHand[index],
+                                  scale: 0.5,
+                                  isFacedown: true,
+                                  bordaEquipadaId: _bordaCartaEquipadaId,
+                                ),
                               );
                             }),
                           ),
@@ -565,7 +586,12 @@ class _BattleScreenState extends State<BattleScreen> {
                         if (_opponentCurrentCard != null)
                           Align(
                             alignment: const Alignment(0, 0.4),
-                            child: CardWidget(card: _opponentCurrentCard!, scale: 0.7, isFacedown: false, bordaEquipadaId : _bordaCartaEquipadaId,),
+                            child: CardWidget(
+                              card: _opponentCurrentCard!,
+                              scale: 0.7,
+                              isFacedown: false,
+                              bordaEquipadaId: _bordaCartaEquipadaId,
+                            ),
                           ),
                       ],
                     ),
@@ -576,26 +602,46 @@ class _BattleScreenState extends State<BattleScreen> {
                     child: Stack(
                       children: [
                         Positioned(
-                          top: 25, left: 16,
+                          top: 25,
+                          left: 16,
                           child: LifeHearts(activeLives: _playerLives, iconeId: _iconeVidaEquipadoId),
                         ),
                         if (_playerCurrentCard != null)
                           Align(
                             alignment: const Alignment(0, -0.4),
-                            child: CardWidget(card: _playerCurrentCard!, scale: 0.7, isFacedown: false, bordaEquipadaId : _bordaCartaEquipadaId,),
+                            child: CardWidget(
+                              card: _playerCurrentCard!,
+                              scale: 0.7,
+                              isFacedown: false,
+                              bordaEquipadaId: _bordaCartaEquipadaId,
+                            ),
                           ),
                         if (_playerDiscard.isNotEmpty)
                           Positioned(
-                            bottom: 175, left: 16,
-                            child: CardWidget(card: _playerDiscard.last, scale: 0.4, isFacedown: false, bordaEquipadaId : _bordaCartaEquipadaId,),
+                            bottom: 175,
+                            left: 16,
+                            child: CardWidget(
+                              card: _playerDiscard.last,
+                              scale: 0.4,
+                              isFacedown: false,
+                              bordaEquipadaId: _bordaCartaEquipadaId,
+                            ),
                           ),
                         if (_playerDeck.isNotEmpty)
                           Positioned(
-                            bottom: 175, right: 16,
-                            child: CardWidget(card: _playerDeck.first, scale: 0.4, isFacedown: true, bordaEquipadaId : _bordaCartaEquipadaId,),
+                            bottom: 175,
+                            right: 16,
+                            child: CardWidget(
+                              card: _playerDeck.first,
+                              scale: 0.4,
+                              isFacedown: true,
+                              bordaEquipadaId: _bordaCartaEquipadaId,
+                            ),
                           ),
                         Positioned(
-                          bottom: 0, left: 0, right: 0,
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
                           child: Stack(
                             alignment: Alignment.bottomCenter,
                             children: [
@@ -619,7 +665,7 @@ class _BattleScreenState extends State<BattleScreen> {
               // 3. BOTÕES DE AÇÃO
               if (_selectedCardIndex != null)
                 Positioned(
-                  bottom: 0, 
+                  bottom: 0,
                   left: 0,
                   right: 0,
                   child: Row(
@@ -650,19 +696,37 @@ class _BattleScreenState extends State<BattleScreen> {
                   texto: _resultadoRoundTexto!,
                   cor: _resultadoRoundCor,
                 ),
-              
+
               Positioned(
-                top: 16, left: 16,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(Icons.exit_to_app_rounded, color: Colors.white70, size: 28),
-                    onPressed: _confirmarFuga,
-                    tooltip: 'Abandonar Batalha',
-                  ),
+                left: 20,
+                child: Column(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.exit_to_app_rounded, color: Colors.white70, size: 28),
+                        onPressed: _confirmarFuga,
+                        tooltip: 'Abandonar Batalha',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.settings, color: Colors.white70, size: 28),
+                        onPressed: () => DialogHelpers.mostrarSettings(context, onDialogClosed: () {
+                          setState(() {}); 
+                        }),
+                        tooltip: 'Configurações',
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
