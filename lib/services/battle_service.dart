@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../models/card_model.dart';
@@ -72,5 +73,88 @@ class BattleService {
       'bordaCarta': 'borda_1',
       'iconeVida': 'vida_1',
     };
+  }
+
+  /// 🌟 GERA O DECK TEMÁTICO DE 9 CARTAS PARA O BOT COM NO MÁXIMO 1 ALFA
+  Future<List<CardModel>> gerarDeckTematicoBot(String dificuldadeNome) async {
+    try {
+      // 1. Carrega todas as cartas do catálogo local
+      final String jsonString = await rootBundle.loadString('assets/data/cards.json');
+      final Map<String, dynamic> jsonDecodificado = jsonDecode(jsonString);
+      final List<dynamic> bancoDeCartasLocal = jsonDecodificado['cards'];
+      
+      List<CardModel> catalogoCompleto = bancoDeCartasLocal.map((c) => CardModel.fromJson(c)).toList();
+
+      // 2. Define o bioma FOCO com base no texto da dificuldade
+      String packIdFoco;
+      if (dificuldadeNome == 'iniciante') {
+        packIdFoco = 'floresta_amazonica';
+      } else if (dificuldadeNome == 'dificil') {
+        packIdFoco = 'tundra_polar';
+      } else {
+        packIdFoco = 'savana_africana';
+      }
+
+      // 3. Separa as cartas do bioma FOCO e as dos OUTROS biomas
+      List<CardModel> cartasDoBiomaFoco = catalogoCompleto.where((carta) => carta.pack == packIdFoco).toList();
+      List<CardModel> cartasDosOutrosBiomas = catalogoCompleto.where((carta) => carta.pack != packIdFoco).toList();
+
+      List<CardModel> deckFinalDoBot = [];
+      bool jaPossuiAlfa = false; // 🐺 Controle estrito de Alfa único
+
+      // 4. Adiciona as cartas do bioma foco respeitando o limite de Alfas
+      cartasDoBiomaFoco.shuffle();
+      for (var carta in cartasDoBiomaFoco) {
+        if (deckFinalDoBot.length >= 9) break;
+
+        // Se for Alfa (Substitua '.isAlfa' pela propriedade real do seu CardModel)
+        if (carta.isAlpha) {
+          if (!jaPossuiAlfa) {
+            deckFinalDoBot.add(carta);
+            jaPossuiAlfa = true; // Bloqueia novos Alfas
+          }
+          // Se já possuir Alfa, simplesmente ignora esta carta por enquanto
+        } else {
+          deckFinalDoBot.add(carta);
+        }
+      }
+
+      // 5. COMPLETA COM OUTROS BIOMAS (Se o foco não tiver 9 cartas)
+      if (deckFinalDoBot.length < 9) {
+        cartasDosOutrosBiomas.shuffle();
+        
+        while (deckFinalDoBot.length < 9 && cartasDosOutrosBiomas.isNotEmpty) {
+          final cartaReserva = cartasDosOutrosBiomas.removeAt(0);
+          
+          if (cartaReserva.isAlpha) {
+            if (!jaPossuiAlfa) {
+              deckFinalDoBot.add(cartaReserva);
+              jaPossuiAlfa = true;
+            }
+          } else {
+            deckFinalDoBot.add(cartaReserva);
+          }
+        }
+      }
+
+      // 6. Salvaguarda extrema de preenchimento (se faltar cartas comuns para fechar 9)
+      if (deckFinalDoBot.length < 9) {
+        // Puxa apenas as cartas comuns (não-alfa) já presentes no deck para clonar sem quebrar a regra
+        List<CardModel> apenasComunsNoDeck = deckFinalDoBot.where((c) => !c.isAlpha).toList();
+        final random = Random();
+        
+        while (deckFinalDoBot.length < 9 && apenasComunsNoDeck.isNotEmpty) {
+          deckFinalDoBot.add(apenasComunsNoDeck[random.nextInt(apenasComunsNoDeck.length)]);
+        }
+      }
+
+      // Embaralha o deck final para que a distribuição de rounds seja justa
+      deckFinalDoBot.shuffle();
+      return deckFinalDoBot;
+
+    } catch (e) {
+      print('Erro ao gerar deck temático com Alfa Único para o bot: $e');
+      return [];
+    }
   }
 }
