@@ -18,10 +18,10 @@ class BattleHelpers {
     switch (atributo) {
       case 'instintoAssassino': return Icons.water_drop;
       case 'forca': return Icons.fitness_center;
-      case 'peso': return Icons.balance;
-      case 'inteligencia': return Icons.psychology;
+      case 'peso': return Icons.scale;
+      case 'inteligencia': return Icons.lightbulb;
       case 'agilidade': return Icons.flash_on;
-      case 'media': return Icons.star;
+      case 'media': return Icons.stars;
       default: return Icons.help_outline;
     }
   }

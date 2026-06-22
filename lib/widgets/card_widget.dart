@@ -143,11 +143,11 @@ class CardWidget extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildAttributeRow(Icons.psychology, "INSTINTO", card.instintoAssassino, goldColor, attributeBgColor),
+                      _buildAttributeRow(Icons.water_drop, "INSTINTO", card.instintoAssassino, goldColor, attributeBgColor),
                       _buildAttributeRow(Icons.fitness_center, "FORÇA", card.forca, goldColor, attributeBgColor),
                       _buildAttributeRow(Icons.scale, "PESO", card.peso, goldColor, attributeBgColor),
                       _buildAttributeRow(Icons.lightbulb, "INTELIG.", card.inteligencia, goldColor, attributeBgColor),
-                      _buildAttributeRow(Icons.bolt, "AGILIDADE", card.agilidade, goldColor, attributeBgColor),
+                      _buildAttributeRow(Icons.flash_on, "AGILIDADE", card.agilidade, goldColor, attributeBgColor),
                       const Divider(color: Colors.black54, height: 6),
                       _buildAttributeRow(Icons.stars, "MÉDIA", card.media, Colors.white, Colors.black87, isMedia: true),
                     ],
