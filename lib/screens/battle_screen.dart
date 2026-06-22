@@ -219,14 +219,14 @@ class _BattleScreenState extends State<BattleScreen> {
     setState(() {
       if (valorJogador > valorOponente) {
         _opponentLives--;
-        _resultadoRoundTexto = "BOAA!";
+        _resultadoRoundTexto = "Vitória!";
         _resultadoRoundCor = Colors.greenAccent;
       } else if (valorOponente > valorJogador) {
         _playerLives--;
-        _resultadoRoundTexto = "EITA!";
+        _resultadoRoundTexto = "Derrota!";
         _resultadoRoundCor = Colors.redAccent;
       } else {
-        _resultadoRoundTexto = "EMPATE!";
+        _resultadoRoundTexto = "Empate!";
         _resultadoRoundCor = Colors.grey;
       }
     });
