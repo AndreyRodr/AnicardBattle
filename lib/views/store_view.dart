@@ -285,7 +285,7 @@ class _StoreViewState extends State<StoreView> {
   @override
   void initState() {
     super.initState();
-    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
+    _timer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
       if (_currentPage < _totalPacks - 1) {
         _currentPage++;
       } else {
@@ -391,9 +391,9 @@ class _StoreViewState extends State<StoreView> {
             child: MainOfferWidget(
               imagePath: "assets/images/oferta.jpeg",
               title: "Combo: 3 Pacotes Floresta",
-              oldPrice: '300',
-              newPrice: '250', 
-              onTap: () => _comprarPacoteGenerico(context, 250, 'floresta_amazonica', 3),
+              oldPrice: '1050',
+              newPrice: '800', 
+              onTap: () => _comprarPacoteGenerico(context, 800, 'floresta_amazonica', 3),
             ),
           ),
           
@@ -410,44 +410,93 @@ class _StoreViewState extends State<StoreView> {
           ),
           const SizedBox(height: 16),
 
-          Center(
-            child: SizedBox(
-              width: 200, 
-              height: 330, 
-              child: PageView(
-                controller: _pageController,
-                physics: const BouncingScrollPhysics(),
-                onPageChanged: (int index) {
-                  setState(() {
-                    _currentPage = index;
-                  });
+Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // 1. Seta para a Esquerda (Agora sempre ativa)
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_rounded),
+                color: Colors.white, // 🌟 Sempre branca
+                iconSize: 32,
+                onPressed: () {
+                  if (_currentPage == 0) {
+                    // Se estiver no primeiro, vai lá para o último (índice 2)
+                    _pageController.animateToPage(
+                      2,
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOut,
+                    );
+                  } else {
+                    // Comportamento normal
+                    _pageController.previousPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
                 },
-                children: [
-                  // 🌟 ADICIONADO: 'imagePath' mapeado com a pasta correta das artes dos pacotes
-                  PackOfferWidget(
-                    packName: "Floresta Amazônica",
-                    packPrice: "100",
-                    imagePath: "assets/images/packs/amazon_pack.png",
-                    fallbackIcon: Icons.forest,
-                    onTap: () => _comprarPacoteGenerico(context, 100, 'floresta_amazonica', 1),
-                  ),
-                  PackOfferWidget(
-                    packName: "Savana Africana",
-                    packPrice: "100",
-                    imagePath: "assets/images/packs/savanna_pack.png",
-                    fallbackIcon: Icons.wb_sunny,
-                    onTap: () => _comprarPacoteGenerico(context, 100, 'savana_africana', 1),
-                  ),
-                  PackOfferWidget(
-                    packName: "Tundra Polar",
-                    packPrice: "100",
-                    imagePath: "assets/images/packs/tundra_pack.png",
-                    fallbackIcon: Icons.ac_unit,
-                    onTap: () => _comprarPacoteGenerico(context, 100, 'tundra_polar', 1),
-                  ),
-                ],
               ),
-            ),
+
+              // 2. O seu Carrossel Original
+              SizedBox(
+                width: 200,
+                height: 330,
+                child: PageView(
+                  controller: _pageController,
+                  physics: const BouncingScrollPhysics(),
+                  onPageChanged: (int index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
+                  children: [
+                    PackOfferWidget(
+                      packName: "Floresta Amazônica",
+                      packPrice: "350",
+                      imagePath: "assets/images/packs/amazon_pack.png",
+                      fallbackIcon: Icons.forest,
+                      onTap: () => _comprarPacoteGenerico(context, 350, 'floresta_amazonica', 1),
+                    ),
+                    PackOfferWidget(
+                      packName: "Savana Africana",
+                      packPrice: "350",
+                      imagePath: "assets/images/packs/savanna_pack.png",
+                      fallbackIcon: Icons.wb_sunny,
+                      onTap: () => _comprarPacoteGenerico(context, 350, 'savana_africana', 1),
+                    ),
+                    PackOfferWidget(
+                      packName: "Tundra Polar",
+                      packPrice: "350",
+                      imagePath: "assets/images/packs/tundra_pack.png",
+                      fallbackIcon: Icons.ac_unit,
+                      onTap: () => _comprarPacoteGenerico(context, 350, 'tundra_polar', 1),
+                    ),
+                  ],
+                ),
+              ),
+
+              // 3. Seta para a Direita (Agora sempre ativa)
+              IconButton(
+                icon: const Icon(Icons.arrow_forward_ios_rounded),
+                color: Colors.white, // 🌟 Sempre branca
+                iconSize: 32,
+                onPressed: () {
+                  if (_currentPage == 2) {
+                    // Se estiver no último, volta lá para o primeiro (índice 0)
+                    _pageController.animateToPage(
+                      0,
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeInOut,
+                    );
+                  } else {
+                    // Comportamento normal
+                    _pageController.nextPage(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                },
+              ),
+            ],
           ),
           
           const SizedBox(height: 12),
