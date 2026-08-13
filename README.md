@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="assets/images/AniCard%20Icon.png" alt="Logo do AniCard Battle" width="160">
+  <img src="assets/images/AniCard%20Icon.png" alt="Logo do AniCard Battle" width="360">
 
 # AniCard Battle
 
@@ -130,13 +130,6 @@ flutter test
 4. Organize um deck com até nove cartas.
 5. Entre em batalha para conquistar recompensas e troféus.
 6. Complete missões e acompanhe sua colocação no ranking.
-
-## Observações de segurança
-
-- Não inclua chaves administrativas, contas de serviço ou segredos de backend no aplicativo.
-- Arquivos de configuração do Firebase usados pelo cliente identificam o projeto, mas a proteção dos dados depende principalmente das regras do Firestore e do Firebase Authentication.
-- Antes de publicar o repositório, revise o histórico de commits e confirme que o arquivo `.env` continua ignorado.
-- Restrinja cada usuário, nas regras do Firestore, aos documentos e operações que realmente deve acessar.
 
 ## Status
 
