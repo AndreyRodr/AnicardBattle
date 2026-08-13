@@ -144,4 +144,6 @@ O AniCard Battle está em desenvolvimento. Funcionalidades, balanceamento, inter
 
 ## Autor
 
-Desenvolvido por [Andrey Rodrigues](https://github.com/AndreyRodr).
+Desenvolvido por 
+- [Andrey Rodrigues](https://github.com/AndreyRodr).
+- [Lucas Teixeira](https://github.com/LucassTeixeiraN)
