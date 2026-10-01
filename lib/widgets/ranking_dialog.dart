@@ -65,7 +65,7 @@ class RankingDialog extends StatelessWidget {
             // Lista dinâmica vinda do Firestore
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection('users').snapshots(),
+                stream: FirebaseFirestore.instance.collection('publicProfiles').snapshots(),
                 builder: (context, snapshot) {
                   if (snapshot.hasError) {
                     return Center(
