@@ -25,7 +25,6 @@ class AuthService {
       // Cria um documento na coleção 'users' com o exato UID do jogador
       await _firestore.collection('users').doc(uid).set({
         'nomeUsuario': nomeUsuario.trim(),
-        'email': email.trim(),
         'moedas': 100,
         
         // Você pode mudar esses números para os IDs das cartas "padrão" do seu jogo
