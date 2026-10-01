@@ -38,7 +38,7 @@ class ProfileView extends StatelessWidget {
               children: _availableAvatars.map((avatar) {
                 return GestureDetector(
                   onTap: () async {
-                    await FirebaseFirestore.instance.collection('users').doc(uid).update({
+                    await FirebaseFirestore.instance.collection('publicProfiles').doc(uid).update({
                       'avatarIcon': avatar['path'],
                     });
                     if (context.mounted) Navigator.pop(context);
@@ -116,7 +116,7 @@ class ProfileView extends StatelessWidget {
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF082611)),
               onPressed: () async {
                 if (nameController.text.trim().isNotEmpty) {
-                  await FirebaseFirestore.instance.collection('users').doc(uid).update({
+                  await FirebaseFirestore.instance.collection('publicProfiles').doc(uid).update({
                     'nomeUsuario': nameController.text.trim(),
                   });
                   if (context.mounted) {
@@ -145,7 +145,7 @@ class ProfileView extends StatelessWidget {
     }
 
     return StreamBuilder<DocumentSnapshot>(
-      stream: FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots(),
+      stream: FirebaseFirestore.instance.collection('publicProfiles').doc(user.uid).snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
@@ -160,7 +160,6 @@ class ProfileView extends StatelessWidget {
         if (snapshot.hasData && snapshot.data!.exists) {
           final dadosDoBanco = snapshot.data!.data() as Map<String, dynamic>;
           nomeUsuario = dadosDoBanco['nomeUsuario'] ?? "Jogador";
-          email = dadosDoBanco['email'] ?? email;
           avatarAtual = dadosDoBanco['avatarIcon'] ?? avatarAtual;
         }
 

@@ -1,0 +1,41 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function owner(userId) {
+      return request.auth != null && request.auth.uid == userId;
+    }
+
+    function validPublicProfile() {
+      let d = request.resource.data;
+      return d.keys().hasOnly([
+          'nomeUsuario', 'avatarIcon', 'trofeus',
+          'cartasEquipadas', 'cosmeticosEquipados'
+        ])
+        && d.keys().hasAll(['nomeUsuario'])
+        && d.nomeUsuario is string
+        && (!('avatarIcon' in d) || d.avatarIcon is string)
+        && (!('trofeus' in d) || d.trofeus is int)
+        && (!('cartasEquipadas' in d) || d.cartasEquipadas is list)
+        && (!('cosmeticosEquipados' in d) || d.cosmeticosEquipados is map);
+    }
+
+    // Dados particulares: cada jogador só pode consultar e editar a própria conta.
+    match /users/{userId} {
+      allow read, create, update, delete: if owner(userId);
+    }
+
+    // Dados mínimos para ranking, avatares e decks de adversários.
+    match /publicProfiles/{userId} {
+      allow read: if request.auth != null;
+      allow create, update: if owner(userId) && validPublicProfile();
+      allow delete: if owner(userId);
+    }
+
+    // Demais coleções: nenhuma permissão implícita.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

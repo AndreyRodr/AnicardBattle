@@ -13,7 +13,7 @@ class BattleService {
       final Map<String, dynamic> jsonDecodificado = jsonDecode(jsonString);
       final List<dynamic> bancoDeCartasLocal = jsonDecodificado['cards'];
 
-      DocumentSnapshot snapshot = await _firestore.collection('users').doc(userId).get();
+      DocumentSnapshot snapshot = await _firestore.collection('publicProfiles').doc(userId).get();
 
       if (!snapshot.exists) return [];
 
@@ -39,7 +39,7 @@ class BattleService {
 
   Future<String> buscarUidoOponenteAleatorio(String currentUid) async {
     try {
-      QuerySnapshot usersSnapshot = await _firestore.collection('users').limit(5).get();
+      QuerySnapshot usersSnapshot = await _firestore.collection('publicProfiles').limit(5).get();
       for (var doc in usersSnapshot.docs) {
         if (doc.id != currentUid) return doc.id; 
       }
@@ -51,7 +51,7 @@ class BattleService {
 
   Future<Map<String, String>> buscarCosmeticosEquipados(String userId) async {
     try {
-      DocumentSnapshot snapshot = await _firestore.collection('users').doc(userId).get();
+      DocumentSnapshot snapshot = await _firestore.collection('publicProfiles').doc(userId).get();
       
       if (snapshot.exists) {
         final Map<String, dynamic>? dados = snapshot.data() as Map<String, dynamic>?;

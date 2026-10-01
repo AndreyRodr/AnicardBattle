@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // <-- NOVO: Pacote do Firestore
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'public_profile_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -40,7 +41,9 @@ class AuthService {
         'criadoEm': FieldValue.serverTimestamp(), // Salva a data e hora do registro
       });
 
-      return null; // Retorna nulo se deu tudo certo!
+      await PublicProfileService().ensureForCurrentUser(uid);
+
+      return null;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         return 'A senha fornecida é muito fraca.';
@@ -58,10 +61,13 @@ class AuthService {
   // 2. Função para Entrar (Login)
   Future<String?> loginUsuario({required String email, required String password}) async {
     try {
-      await _auth.signInWithEmailAndPassword(
+      final credential = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
+      if (credential.user != null) {
+        await PublicProfileService().ensureForCurrentUser(credential.user!.uid);
+      }
       return null; // Sucesso!
     } on FirebaseAuthException catch (e) {
       if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {

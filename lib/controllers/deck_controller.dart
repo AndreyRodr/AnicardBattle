@@ -55,9 +55,15 @@ class DeckController {
     List<int> equippedIds = equippedCards.map((c) => c.id).toList();
     List<int> inventoryIds = playerCards.map((c) => c.id).toList();
 
-    await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+    final db = FirebaseFirestore.instance;
+    final batch = db.batch();
+    batch.update(db.collection('users').doc(user.uid), {
       'cartasEquipadas': equippedIds,
       'inventario': inventoryIds,
     });
+    batch.set(db.collection('publicProfiles').doc(user.uid), {
+      'cartasEquipadas': equippedIds,
+    }, SetOptions(merge: true));
+    await batch.commit();
   }
 }

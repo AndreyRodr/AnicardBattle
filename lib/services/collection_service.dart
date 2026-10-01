@@ -21,11 +21,11 @@ class CollectionService {
       }
 
       // Atualiza apenas a chave específica dentro do mapa 'cosmeticosEquipados'
-      await _firestore.collection('users').doc(userId).set({
-        'cosmeticosEquipados': {
-          chaveMap: itemId,
-        }
-      }, SetOptions(merge: true));
+      final batch = _firestore.batch();
+      final patch = <String, dynamic>{'cosmeticosEquipados.$chaveMap': itemId};
+      batch.update(_firestore.collection('users').doc(userId), patch);
+      batch.update(_firestore.collection('publicProfiles').doc(userId), patch);
+      await batch.commit();
       
       print('Cosmético [$itemId] salvo com sucesso no Firestore.');
     } catch (e) {

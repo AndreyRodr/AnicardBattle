@@ -3,14 +3,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserModel {
   final String id;
   final String username;
-  final String email;
   final DateTime createdAt;
   final int avatar;
 
   UserModel({
     required this.id,
     required this.username,
-    required this.email,
     required this.createdAt,
     this.avatar = 0,
   });
@@ -22,7 +20,6 @@ class UserModel {
     return UserModel(
       id: doc.id, 
       username: data['username'] ?? "Jogador", 
-      email: data['email'] ?? '', 
       createdAt: data['createdAt'] != null
         ? (data['createdAt'] as Timestamp).toDate()
         : DateTime.now(),
@@ -34,7 +31,6 @@ class UserModel {
   Map<String, dynamic> toMap() {
     return {
       'username': username,
-      'email': email,
       'createdAt': Timestamp.fromDate(createdAt),
       'avatar': avatar
     };
@@ -48,7 +44,6 @@ class UserModel {
   }) {
     return UserModel(
       id: id,
-      email: email,
       createdAt: createdAt,
       username: username ?? this.username,
       avatar: avatar,

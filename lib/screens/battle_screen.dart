@@ -393,6 +393,9 @@ class _BattleScreenState extends State<BattleScreen> {
           'trofeus': novosTrofeus,
           'moedas': novasMoedas,
         });
+        transaction.update(FirebaseFirestore.instance.collection('publicProfiles').doc(uid), {
+          'trofeus': novosTrofeus,
+        });
       });
     } catch (e) {
       debugPrint("Erro ao salvar dados pós-batalha: $e");
