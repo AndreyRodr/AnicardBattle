@@ -1,0 +1,11 @@
+{
+  "name": "anicard-firestore-maintenance",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "migrate": "node migrate_public_profiles.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}
