@@ -33,14 +33,16 @@ class DefaultFirebaseOptions {
   }
 
   // Removemos o "const" e adicionamos "get" para puxar as variáveis do .env
+  // No navegador, use --dart-define-from-file=web-firebase-config.json.
+  // Valores do SDK cliente são públicos; nunca inclua credenciais de serviço.
   static FirebaseOptions get web => FirebaseOptions(
-        apiKey: dotenv.env['FIREBASE_WEB_API_KEY'] ?? '',
-        appId: dotenv.env['FIREBASE_WEB_APP_ID'] ?? '',
-        messagingSenderId: dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '',
-        projectId: dotenv.env['FIREBASE_PROJECT_ID'] ?? '',
-        authDomain: dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? '',
-        storageBucket: dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? '',
-        measurementId: dotenv.env['FIREBASE_WEB_MEASUREMENT_ID'] ?? '',
+        apiKey: const String.fromEnvironment('FIREBASE_WEB_API_KEY'),
+        appId: const String.fromEnvironment('FIREBASE_WEB_APP_ID'),
+        messagingSenderId: const String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID'),
+        projectId: const String.fromEnvironment('FIREBASE_PROJECT_ID'),
+        authDomain: const String.fromEnvironment('FIREBASE_AUTH_DOMAIN'),
+        storageBucket: const String.fromEnvironment('FIREBASE_STORAGE_BUCKET'),
+        measurementId: const String.fromEnvironment('FIREBASE_WEB_MEASUREMENT_ID'),
       );
 
   static FirebaseOptions get android => FirebaseOptions(
